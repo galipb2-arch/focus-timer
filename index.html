@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Timer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top-bar">
+      <h1>Focus Timer</h1>
+      <div class="streak" id="streak">
+        <span class="flame">🔥</span>
+        <span id="streakCount">0</span>
+        <span class="streak-label">day streak</span>
+      </div>
+    </header>
+
+    <main class="timer-card" id="timerCard">
+      <div class="mode-switch">
+        <button class="mode-btn active" data-mode="focus">Focus</button>
+        <button class="mode-btn" data-mode="short">Short Break</button>
+        <button class="mode-btn" data-mode="long">Long Break</button>
+      </div>
+
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="100"></circle>
+          <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"></circle>
+        </svg>
+        <div class="time-display">
+          <span id="timeLeft">25:00</span>
+          <span class="active-task" id="activeTaskLabel">No task selected</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="startPauseBtn" class="primary-btn">Start</button>
+        <button id="resetBtn" class="secondary-btn">Reset</button>
+        <button id="skipBtn" class="secondary-btn">Skip</button>
+      </div>
+
+      <div class="pomo-dots" id="pomoDots"></div>
+    </main>
+
+    <section class="tasks-card">
+      <h2>Tasks</h2>
+      <form id="taskForm" class="task-form">
+        <input type="text" id="taskInput" placeholder="What are you focusing on?" autocomplete="off" maxlength="80">
+        <button type="submit">Add</button>
+      </form>
+      <ul id="taskList" class="task-list"></ul>
+    </section>
+  </div>
+
+  <div class="celebrate" id="celebrate"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
