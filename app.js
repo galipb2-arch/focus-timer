@@ -3,6 +3,13 @@
   const POMOS_BEFORE_LONG_BREAK = 4;
   const STORAGE_KEY = 'focusTimer.v1';
 
+  const GROWTH_WINDOW = 24 * 60;
+  const RIPEN_WINDOW = DURATIONS.focus - GROWTH_WINDOW;
+  const GROUND_Y = 102;
+  const MAX_STEM_HEIGHT = 60;
+  let isFalling = false;
+  let fallResetHandle = null;
+
   const state = load() ?? {
     mode: 'focus',
     tasks: [],
@@ -32,6 +39,14 @@
     streakCount: document.getElementById('streakCount'),
     timerCard: document.getElementById('timerCard'),
     celebrate: document.getElementById('celebrate'),
+    sprout: document.getElementById('sprout'),
+    stem: document.getElementById('stem'),
+    leaf1: document.getElementById('leaf1'),
+    leaf2: document.getElementById('leaf2'),
+    tomatoAnchor: document.getElementById('tomatoAnchor'),
+    tomatoGroup: document.getElementById('tomatoGroup'),
+    tomato: document.getElementById('tomato'),
+    gardenCaption: document.getElementById('gardenCaption'),
   };
 
   const RING_CIRCUMFERENCE = 2 * Math.PI * 100;
@@ -69,8 +84,92 @@
       updateStartPauseBtn();
       renderRing();
       renderTime();
+      resetGarden();
     }
     save();
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function lerpColor(from, to, t) {
+    const r = Math.round(from[0] + (to[0] - from[0]) * t);
+    const g = Math.round(from[1] + (to[1] - from[1]) * t);
+    const b = Math.round(from[2] + (to[2] - from[2]) * t);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  function getGardenMetrics() {
+    const total = DURATIONS.focus;
+    const elapsed = clamp(total - secondsLeft, 0, total);
+    const growth = clamp(elapsed / GROWTH_WINDOW, 0, 1);
+    const ripeness = clamp((elapsed - GROWTH_WINDOW) / RIPEN_WINDOW, 0, 1);
+    return { elapsed, growth, ripeness };
+  }
+
+  function renderGarden() {
+    if (state.mode !== 'focus' || isFalling) return;
+    const { elapsed, growth, ripeness } = getGardenMetrics();
+
+    els.sprout.style.opacity = elapsed <= 0 ? 0 : clamp(1 - growth / 0.15, 0, 1);
+
+    const stemHeight = MAX_STEM_HEIGHT * growth;
+    els.stem.style.transform = `scaleY(${growth})`;
+
+    const leaf1Scale = clamp((growth - 0.25) / 0.15, 0, 1);
+    const leaf1Y = GROUND_Y - stemHeight * 0.45;
+    els.leaf1.style.transform = `translate(100px, ${leaf1Y}px) scale(${leaf1Scale})`;
+
+    const leaf2Scale = clamp((growth - 0.5) / 0.15, 0, 1);
+    const leaf2Y = GROUND_Y - stemHeight * 0.72;
+    els.leaf2.style.transform = `translate(100px, ${leaf2Y}px) scale(${leaf2Scale})`;
+
+    const tomatoScale = clamp((growth - 0.4) / 0.6, 0, 1);
+    const tomatoY = GROUND_Y - stemHeight - 6;
+    els.tomatoAnchor.style.transform = `translate(100px, ${tomatoY}px)`;
+    els.tomatoGroup.style.transform = `scale(${tomatoScale})`;
+
+    els.tomato.style.fill = lerpColor([91, 191, 90], [230, 60, 48], ripeness);
+    els.tomato.style.filter = ripeness > 0.02
+      ? `drop-shadow(0 0 ${4 + 8 * ripeness}px rgba(255, 70, 50, ${0.3 + 0.4 * ripeness}))`
+      : 'drop-shadow(0 0 4px rgba(110, 220, 110, 0.35))';
+
+    if (els.gardenCaption) {
+      els.gardenCaption.textContent =
+        growth < 0.04 ? 'Tohum ekildi 🌱' :
+        growth < 0.15 ? 'Filizleniyor…' :
+        ripeness >= 1 ? 'Olgunlaştı! 🍅' :
+        ripeness > 0 ? 'Kızarıyor…' :
+        'Büyüyor 🌿';
+    }
+  }
+
+  function resetGarden() {
+    els.sprout.style.opacity = 0;
+    els.stem.style.transform = 'scaleY(0)';
+    els.leaf1.style.transform = 'translate(100px, 102px) scale(0)';
+    els.leaf2.style.transform = 'translate(100px, 102px) scale(0)';
+    if (!isFalling) {
+      els.tomatoAnchor.style.transform = `translate(100px, ${GROUND_Y - 6}px)`;
+      els.tomatoGroup.style.transform = 'scale(0)';
+      els.tomato.style.fill = '#5bbf5a';
+      els.tomato.style.filter = 'none';
+    }
+    if (els.gardenCaption) els.gardenCaption.textContent = 'Tohum ekildi 🌱';
+  }
+
+  function triggerFall() {
+    isFalling = true;
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    els.tomatoAnchor.classList.add('falling');
+    els.tomatoAnchor.style.transform = `translate(${100 + dir * 7}px, ${GROUND_Y}px) rotate(${dir * 220}deg) scale(0.9)`;
+    clearTimeout(fallResetHandle);
+    fallResetHandle = setTimeout(() => {
+      els.tomatoAnchor.classList.remove('falling');
+      isFalling = false;
+      resetGarden();
+    }, 700);
   }
 
   function renderRing() {
@@ -81,7 +180,7 @@
 
   function renderTime() {
     els.timeLeft.textContent = formatTime(secondsLeft);
-    document.title = running ? `${formatTime(secondsLeft)} · Focus Timer` : 'Focus Timer';
+    document.title = running ? `${formatTime(secondsLeft)} · Uzay Domatesi` : 'Uzay Domatesi';
   }
 
   function updateStartPauseBtn() {
@@ -93,6 +192,7 @@
     secondsLeft = Math.max(0, Math.round((endTimestamp - now) / 1000));
     renderTime();
     renderRing();
+    renderGarden();
     if (secondsLeft <= 0) {
       completeSession();
     }
@@ -129,6 +229,10 @@
     updateStartPauseBtn();
     renderRing();
     renderTime();
+    clearTimeout(fallResetHandle);
+    isFalling = false;
+    els.tomatoAnchor.classList.remove('falling');
+    resetGarden();
   }
 
   function skipTimer() {
@@ -155,6 +259,7 @@
         playChime();
         celebrate();
       }
+      triggerFall();
       const nextMode = state.pomosCompleted % POMOS_BEFORE_LONG_BREAK === 0 ? 'long' : 'short';
       setMode(nextMode);
     } else {
@@ -290,6 +395,7 @@
   function renderAll() {
     renderRing();
     renderTime();
+    renderGarden();
     renderPomoDots();
     renderStreak();
     renderActiveTaskLabel();
