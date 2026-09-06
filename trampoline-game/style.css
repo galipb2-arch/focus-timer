@@ -1,0 +1,327 @@
+:root {
+  color-scheme: dark;
+  --gold: #ffcf3f;
+  --gold-glow: #ffb400;
+  --forest-dark: #0c2e1c;
+  --forest-mid: #164a2b;
+  --ink: #fff8e6;
+  --muted: #cfe8d6;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body {
+  background: #04140a;
+  color: var(--ink);
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 12px;
+  user-select: none;
+}
+
+.phone-frame {
+  position: relative;
+  width: min(100vw - 24px, calc((100vh - 24px) * 390 / 844));
+  aspect-ratio: 390 / 844;
+  background: #04140a;
+  border-radius: 34px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 0 8px #0a0a0a, 0 0 0 9px #2a2a2a;
+}
+
+#game {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px 26px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255, 207, 63, 0.10), transparent 60%),
+    linear-gradient(180deg, #0e3a20 0%, #0c2e1c 55%, #071f13 100%);
+}
+
+.logo-badge {
+  font-size: 52px;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+  animation: bob 2.4s ease-in-out infinite;
+}
+.logo-badge.small { font-size: 40px; }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.game-title {
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  line-height: 1.08;
+  margin: 0;
+  letter-spacing: 0.02em;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255, 180, 0, 0.55), 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+.game-title.small { font-size: 26px; }
+
+.level-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+  margin-top: 8px;
+}
+
+.btn {
+  border: none;
+  padding: 15px 20px;
+  border-radius: 16px;
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-primary {
+  background: linear-gradient(180deg, #ffe28a, var(--gold-glow));
+  color: #3a2400;
+  box-shadow: 0 8px 0 #a76a00, 0 10px 20px rgba(255, 180, 0, 0.35);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+}
+
+.menu-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+/* Loading */
+.loading-bar-track {
+  width: 78%;
+  max-width: 260px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.loading-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffe28a, var(--gold-glow));
+  box-shadow: 0 0 12px rgba(255, 180, 0, 0.7);
+  transition: width 0.15s ease-out;
+}
+
+.loading-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+/* Nasıl oynanır */
+.howto-title {
+  font-family: 'Baloo 2', sans-serif;
+  color: var(--gold);
+  font-size: 24px;
+  margin: 0 0 4px;
+}
+
+.howto-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  width: 100%;
+  max-width: 300px;
+}
+
+.howto-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.howto-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.howto-list b { color: var(--gold); }
+
+/* HUD */
+.hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  padding: 16px 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.hud-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hud-level {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+.hud-coins {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.coin-dot { font-size: 15px; }
+
+.height-track {
+  align-self: flex-end;
+  width: 8px;
+  height: 220px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.height-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: linear-gradient(180deg, var(--gold), var(--gold-glow));
+  box-shadow: 0 0 8px rgba(255, 180, 0, 0.7);
+  transition: height 0.12s linear;
+}
+
+/* Level complete */
+.complete-screen {
+  background:
+    radial-gradient(ellipse 100% 70% at 50% 20%, rgba(255, 207, 63, 0.20), transparent 60%),
+    linear-gradient(180deg, #123c22 0%, #0c2e1c 60%, #071f13 100%);
+}
+
+.complete-sub {
+  margin: 0;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.complete-sub2 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.confetti-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 8px;
+  height: 12px;
+  opacity: 0.95;
+  animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(120vh) rotate(560deg);
+    opacity: 0;
+  }
+}
+
+@media (max-height: 700px) {
+  .howto-list li { padding: 10px 12px; font-size: 13px; }
+  .game-title { font-size: 26px; }
+}

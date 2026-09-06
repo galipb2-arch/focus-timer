@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Trambolin Kahramanı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="phone-frame" id="phoneFrame">
+    <canvas id="game"></canvas>
+
+    <!-- Yükleniyor ekranı -->
+    <section class="screen loading-screen" id="loadingScreen">
+      <div class="logo-badge">🏆</div>
+      <h1 class="game-title">TRAMBOLİN<br>KAHRAMANI</h1>
+      <div class="loading-bar-track">
+        <div class="loading-bar-fill" id="loadingFill"></div>
+      </div>
+      <p class="loading-label" id="loadingLabel">Orman hazırlanıyor… 0%</p>
+    </section>
+
+    <!-- Ana menü -->
+    <section class="screen menu-screen" id="menuScreen" hidden>
+      <div class="logo-badge small">🥷</div>
+      <h1 class="game-title small">TRAMBOLİN<br>KAHRAMANI</h1>
+      <p class="level-subtitle">Bölüm 1 · Yeşil Orman 🌲</p>
+      <div class="menu-buttons">
+        <button class="btn btn-primary" id="startBtn">BAŞLA</button>
+        <button class="btn btn-secondary" id="howtoBtn">NASIL OYNANIR</button>
+      </div>
+      <p class="menu-hint">Sesi açık tutarsan altın sesini duyarsın ✨</p>
+    </section>
+
+    <!-- Nasıl oynanır ekranı -->
+    <section class="screen howto-screen" id="howtoScreen" hidden>
+      <h2 class="howto-title">Nasıl Oynanır?</h2>
+      <ul class="howto-list">
+        <li>
+          <span class="howto-icon">🤸</span>
+          <span>Kahramanın trambolin üzerinde otomatik olarak zıplar.</span>
+        </li>
+        <li>
+          <span class="howto-icon">👆</span>
+          <span>Havadayken ekrana dokun, her dokunuş onu biraz daha <b>yükseğe</b> fırlatır!</span>
+        </li>
+        <li>
+          <span class="howto-icon">🪙</span>
+          <span>Ne kadar yükseğe çıkarsan, o kadar çok <b>altın ödül</b> toplarsın.</span>
+        </li>
+        <li>
+          <span class="howto-icon">🎭</span>
+          <span>Tüm ödülleri topla, bölümü geç ve kahramanın <b>gizemli maskesi</b> düşsün!</span>
+        </li>
+      </ul>
+      <div class="menu-buttons">
+        <button class="btn btn-primary" id="howtoStartBtn">ANLADIM, BAŞLA!</button>
+        <button class="btn btn-secondary" id="howtoBackBtn">GERİ</button>
+      </div>
+    </section>
+
+    <!-- Oyun içi HUD -->
+    <div class="hud" id="hud" hidden>
+      <div class="hud-top">
+        <div class="hud-level">Bölüm 1 · Yeşil Orman</div>
+        <div class="hud-coins"><span class="coin-dot">🪙</span><span id="coinCount">0</span>/<span id="coinTotal">6</span></div>
+      </div>
+      <div class="height-track">
+        <div class="height-fill" id="heightFill"></div>
+      </div>
+    </div>
+
+    <!-- Bölüm tamamlandı ekranı -->
+    <section class="screen complete-screen" id="completeScreen" hidden>
+      <div class="confetti-layer" id="confettiLayer"></div>
+      <div class="logo-badge">🎉</div>
+      <h1 class="game-title small">TEBRİKLER!</h1>
+      <p class="complete-sub">Bölüm 1 Tamamlandı</p>
+      <p class="complete-sub2">Kahramanın maskesi düştü! 🎭➡️😄</p>
+      <div class="menu-buttons">
+        <button class="btn btn-primary" id="replayBtn">TEKRAR OYNA</button>
+        <button class="btn btn-secondary" id="menuBtn">ANA MENÜ</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
