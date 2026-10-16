@@ -129,21 +129,21 @@
 
   // ---------- Levels ----------
   const LEVELS = [
-    { id: 0, name: 'Bölüm 1 · Yeşil Orman', icon: '🌲', theme: 'forest', coinHeights: [180, 270, 350, 440, 530, 620] },
-    { id: 1, name: 'Bölüm 2 · Kar Dağı', icon: '🏔️', theme: 'snow', coinHeights: [200, 300, 410, 520, 640, 780] },
-    { id: 2, name: 'Bölüm 3 · Çöl Vahası', icon: '🏜️', theme: 'desert', coinHeights: [240, 370, 500, 650, 820, 1050] },
-    { id: 3, name: 'Bölüm 4 · Balon Şenliği', icon: '🎈', theme: 'party', coinHeights: [320, 520, 720, 920, 1100, 1300], balloons: 54 },
-    { id: 4, name: 'Bölüm 5 · Slime Körfezi', icon: '🌅', theme: 'ocean', coinHeights: [300, 550, 800, 1050, 1280, 1500], slimes: 16 },
+    { id: 0, name: 'Bölüm 1 · Yeşil Orman', icon: '🌲', theme: 'forest', coinHeights: [180, 230, 280, 320, 370, 420, 470, 520, 570, 620] },
+    { id: 1, name: 'Bölüm 2 · Kar Dağı', icon: '🏔️', theme: 'snow', coinHeights: [200, 260, 310, 370, 430, 500, 560, 630, 700, 780] },
+    { id: 2, name: 'Bölüm 3 · Çöl Vahası', icon: '🏜️', theme: 'desert', coinHeights: [240, 310, 380, 460, 530, 620, 710, 800, 920, 1050] },
+    { id: 3, name: 'Bölüm 4 · Balon Şenliği', icon: '🎈', theme: 'party', coinHeights: [220, 300, 380, 450, 530, 610, 680, 750, 820, 900], balloons: 32 },
+    { id: 4, name: 'Bölüm 5 · Slime Körfezi', icon: '🌅', theme: 'ocean', coinHeights: [300, 440, 580, 720, 860, 990, 1130, 1250, 1380, 1500], slimes: 16 },
     // A floating slingshot waits 560 up; a good launch from it carries the hero to the top coin.
-    { id: 5, name: 'Bölüm 6 · Turkuaz Ada', icon: '🏝️', theme: 'lagoon', coinHeights: [260, 440, 860, 1150, 1450, 1900], slingshot: 560 },
+    { id: 5, name: 'Bölüm 6 · Turkuaz Ada', icon: '🏝️', theme: 'lagoon', coinHeights: [260, 360, 490, 720, 920, 1090, 1250, 1420, 1650, 1900], slingshot: 560 },
     // A helicopter hovers 600 up; boarding it carries the hero through cloud banks to the top coin.
-    { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260, 440, 1200, 1800, 2400, 3000], helicopter: 600 },
+    { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260, 360, 520, 950, 1330, 1670, 2000, 2330, 2670, 3000], helicopter: 600 },
     // A web-slinger swings in 650 up and carries the hero skyward on a web line.
-    { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 500, 1400, 2300, 3200, 4000], webswing: 650 },
+    { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 410, 600, 1100, 1600, 2100, 2600, 3100, 3560, 4000], webswing: 650 },
     // A giant baseball stadium — collect sports balls instead of gold coins.
-    { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220, 380, 580, 850, 1200, 1650], collectible: 'sport' },
+    { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220, 310, 400, 510, 640, 790, 970, 1160, 1400, 1650], collectible: 'sport' },
     // Deep space — each comet collected speeds up every future bounce and tap for the rest of the run.
-    { id: 9, name: 'Bölüm 10 · Uzay Yarışı', icon: '☄️', theme: 'space', coinHeights: [280, 520, 950, 1600, 2600, 4200], collectible: 'comet' },
+    { id: 9, name: 'Bölüm 10 · Uzay Yarışı', icon: '☄️', theme: 'space', coinHeights: [280, 410, 570, 810, 1090, 1460, 1930, 2490, 3310, 4200], collectible: 'comet' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -183,7 +183,7 @@
 
   const BALLOON_COLORS = ['#ff5d73', '#ffb400', '#4cd964', '#4aa8ff', '#c06bff', '#ff8a3d', '#27d3c3', '#ff6fae'];
   const BALLOON_R = 22;
-  const BALLOON_SLOWDOWN = 0.975; // hero speed kept after pushing a balloon aside
+  const BALLOON_SLOWDOWN = 0.988; // hero speed kept after pushing a balloon aside
 
   // minLevel: first level index (unlockedLevel) at which the upgrade is introduced.
   const UPGRADE_DEFS = [
@@ -1768,6 +1768,52 @@
     ctx.restore();
   }
 
+  // A checkered finish-line ribbon with two pennant flags, drawn at every
+  // level's final (top) coin height — marks the actual summit of the course.
+  function drawFinishLine(theme) {
+    const level = currentLevel();
+    const topHeight = level.coinHeights[level.coinHeights.length - 1];
+    const y = TRAMPOLINE_Y - topHeight + cameraOffset;
+    if (y > CANVAS_H + 80 || y < -80) return;
+
+    const stripH = 16;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, y - stripH / 2, CANVAS_W, stripH);
+    ctx.clip();
+    const squareSize = 14;
+    const cols = Math.ceil(CANVAS_W / squareSize) + 1;
+    for (let col = 0; col < cols; col++) {
+      for (let row = 0; row < 2; row++) {
+        const isDark = (row + col) % 2 === 0;
+        ctx.fillStyle = isDark ? '#17181c' : '#f4f4f4';
+        ctx.fillRect(col * squareSize, y - stripH / 2 + row * (stripH / 2), squareSize, stripH / 2);
+      }
+    }
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, y - stripH / 2, CANVAS_W, stripH);
+
+    [16, CANVAS_W - 16].forEach((px, i) => {
+      ctx.strokeStyle = '#9a9a9a';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(px, y - stripH / 2 - 28);
+      ctx.lineTo(px, y + 48);
+      ctx.stroke();
+
+      const dir = i === 0 ? 1 : -1;
+      ctx.fillStyle = theme.accent;
+      ctx.beginPath();
+      ctx.moveTo(px, y - stripH / 2 - 26);
+      ctx.lineTo(px + dir * 20, y - stripH / 2 - 16);
+      ctx.lineTo(px, y - stripH / 2 - 6);
+      ctx.closePath();
+      ctx.fill();
+    });
+  }
+
   // ---------- Drawing: coins ----------
   function drawCoins() {
     coins.forEach(coin => {
@@ -2345,6 +2391,7 @@
     drawHeli(false);
     drawBalloons();
     drawSlimes(false);
+    drawFinishLine(theme);
     drawCoins();
     drawCharacter(theme);
     drawSlimes(true);
