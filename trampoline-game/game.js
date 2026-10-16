@@ -103,6 +103,17 @@
       trunk: '#333',
       accent: '#ffb347',
     },
+    stadium: {
+      skyTop: [70, 130, 210], skyTopHigh: [160, 200, 255],
+      skyBot: [130, 178, 228], skyBotHigh: [224, 238, 255],
+      groundNear: '#2f7d32', groundFar: '#4fa255',
+      groundSpeckle: 'rgba(10,60,10,0.12)',
+      sunColor: '#fff6d0', sunGlow: 'rgba(255, 246, 208, 0.3)',
+      decor: 'stadium',
+      foliage: ['#3a3a3a', '#454545', '#525252'], // light-tower pole shading
+      trunk: '#2a2a2a',
+      accent: '#d1232a',
+    },
   };
 
   // ---------- Levels ----------
@@ -118,7 +129,11 @@
     { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260, 440, 1200, 1800, 2400, 3000], helicopter: 600 },
     // A web-slinger swings in 650 up and carries the hero skyward on a web line.
     { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 500, 1400, 2300, 3200, 4000], webswing: 650 },
+    // A giant baseball stadium — collect sports balls instead of gold coins.
+    { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220, 380, 580, 850, 1200, 1650], collectible: 'sport' },
   ];
+
+  const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
 
   const HELI_BASE = 6;
   const HELI_BASE_STEP = 0.7;
@@ -201,6 +216,7 @@
   const upgradeList = document.getElementById('upgradeList');
 
   const hudLevel = document.getElementById('hudLevel');
+  const hudCoinIcon = document.getElementById('hudCoinIcon');
   const coinCountEl = document.getElementById('coinCount');
   const coinTotalEl = document.getElementById('coinTotal');
   const hudGoldAmount = document.getElementById('hudGoldAmount');
@@ -399,7 +415,13 @@
     player.squash = 0;
     player.boostCount = 0;
     player.maskOff = 0;
-    coins = level.coinHeights.map(h => ({ worldY: TRAMPOLINE_Y - h, collected: false, wobble: Math.random() * Math.PI * 2 }));
+    coins = level.coinHeights.map((h, i) => ({
+      worldY: TRAMPOLINE_Y - h,
+      collected: false,
+      wobble: Math.random() * Math.PI * 2,
+      ballType: level.collectible === 'sport' ? SPORT_BALL_TYPES[i % SPORT_BALL_TYPES.length] : null,
+    }));
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : '🪙';
     particles = [];
     balloons = makeBalloons(level);
     slimes = makeSlimes(level);
@@ -1070,11 +1092,12 @@
     // As the hero climbs above the tree line the canopy thins out,
     // revealing open sky — matches the sky color already brightening.
     const treeAlpha = 1 - climb * 0.85;
+    const sparse = theme.decor === 'stadium';
     ctx.save();
     ctx.globalAlpha = treeAlpha;
-    drawDecorLayer(theme, 0.35, 150, theme.foliage[0], 1, 0.62);
-    drawDecorLayer(theme, 0.6, 120, theme.foliage[1], 2, 0.8);
-    drawDecorLayer(theme, 1.0, 95, theme.foliage[2], 3, 1.0);
+    drawDecorLayer(theme, 0.35, sparse ? 420 : 150, theme.foliage[0], 1, sparse ? 0.8 : 0.62);
+    drawDecorLayer(theme, 0.6, sparse ? 340 : 120, theme.foliage[1], 2, sparse ? 1.0 : 0.8);
+    drawDecorLayer(theme, 1.0, sparse ? 280 : 95, theme.foliage[2], 3, sparse ? 1.2 : 1.0);
     ctx.restore();
   }
 
@@ -1186,6 +1209,7 @@
         if (theme.decor === 'trees') drawTree(tx, y, scale, color, theme.trunk, false);
         else if (theme.decor === 'snowtrees') drawTree(tx, y, scale, color, theme.trunk, true);
         else if (theme.decor === 'cacti') drawCactus(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'stadium') drawLightTower(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -1278,6 +1302,48 @@
     ctx.restore();
   }
 
+  // A stadium light tower: tall pole with cross-braces and a cluster of
+  // floodlights at the top. Towers tile sparsely up the stadium's height.
+  function drawLightTower(x, y, scale, color, seed) {
+    if (y < -220 || y > CANVAS_H + 220) return;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, 50, 11, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const poleGrad = ctx.createLinearGradient(-3, 0, 3, 0);
+    poleGrad.addColorStop(0, lighten(color, 14));
+    poleGrad.addColorStop(1, darken(color, 10));
+    ctx.fillStyle = poleGrad;
+    ctx.fillRect(-3, -150, 6, 200);
+
+    ctx.strokeStyle = darken(color, 6);
+    ctx.lineWidth = 1.4;
+    for (let i = 0; i < 3; i++) {
+      const yy = -30 - i * 36;
+      ctx.beginPath();
+      ctx.moveTo(-3, yy); ctx.lineTo(3, yy - 15);
+      ctx.moveTo(3, yy); ctx.lineTo(-3, yy - 15);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#242424';
+    ctx.fillRect(-28, -168, 56, 11);
+    for (let i = 0; i < 6; i++) {
+      const lx = -23 + i * 9.2;
+      ctx.fillStyle = seededRand(seed + i) > 0.3 ? '#fff6c8' : '#d8d8d8';
+      ctx.beginPath();
+      ctx.arc(lx, -162, 3.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
   function lighten(hex, amt) { return shade(hex, amt); }
   function darken(hex, amt) { return shade(hex, -amt); }
   function shade(hex, amt) {
@@ -1314,6 +1380,60 @@
 
     ctx.fillStyle = theme.groundFar;
     ctx.fillRect(0, y, CANVAS_W, 5);
+  }
+
+  // Bölüm 9: the infield dirt diamond, base paths and home plate, drawn
+  // once around the trampoline so it reads as "set up on the pitcher's
+  // mound of a giant stadium" rather than tiled like the forest/cacti.
+  function drawBaseballDiamond() {
+    const y = GROUND_Y + cameraOffset;
+    if (y > CANVAS_H + 40 || y < -260) return;
+    ctx.save();
+    ctx.translate(CENTER_X, y - 36);
+
+    const dirtGrad = ctx.createRadialGradient(0, -20, 10, 0, -20, 170);
+    dirtGrad.addColorStop(0, '#c48a4f');
+    dirtGrad.addColorStop(1, '#a3692f');
+    ctx.fillStyle = dirtGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 42);
+    ctx.lineTo(-150, -108);
+    ctx.quadraticCurveTo(0, -205, 150, -108);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 42); ctx.lineTo(-95, -55);
+    ctx.moveTo(0, 42); ctx.lineTo(95, -55);
+    ctx.stroke();
+
+    [[-95, -55], [0, -140], [95, -55]].forEach(([bx, by]) => {
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(-7, -7, 14, 14);
+      ctx.restore();
+    });
+
+    ctx.fillStyle = '#b87b42';
+    ctx.beginPath();
+    ctx.ellipse(0, -46, 20, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(0, -46, 6, 2.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(-8, 40); ctx.lineTo(8, 40); ctx.lineTo(8, 48); ctx.lineTo(0, 56); ctx.lineTo(-8, 48);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
   }
 
   // ---------- Drawing: trampoline ----------
@@ -1527,7 +1647,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -1540,25 +1660,83 @@
       const spin = Math.sin(coin.wobble * 0.7);
       ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
 
-      const grad = ctx.createRadialGradient(-5, -5, 2, 0, 0, 16);
-      grad.addColorStop(0, '#fff8d6');
-      grad.addColorStop(0.45, '#ffd24a');
-      grad.addColorStop(1, '#a86e00');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(0, 0, 16, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#8a5a00';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      if (coin.ballType) {
+        drawSportBall(coin.ballType);
+      } else {
+        const grad = ctx.createRadialGradient(-5, -5, 2, 0, 0, 16);
+        grad.addColorStop(0, '#fff8d6');
+        grad.addColorStop(0.45, '#ffd24a');
+        grad.addColorStop(1, '#a86e00');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#8a5a00';
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.arc(0, 0, 10, Math.PI * 1.1, Math.PI * 1.7);
-      ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, Math.PI * 1.1, Math.PI * 1.7);
+        ctx.stroke();
+      }
       ctx.restore();
     });
+  }
+
+  // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
+  // place of a gold coin. Assumes the context is already translated to
+  // the ball's center.
+  function drawSportBall(type) {
+    const grad = ctx.createRadialGradient(-5, -5, 2, 0, 0, 15);
+    if (type === 'basketball') {
+      grad.addColorStop(0, '#ffab5c');
+      grad.addColorStop(1, '#c9701f');
+    } else if (type === 'tennis') {
+      grad.addColorStop(0, '#f1ff8a');
+      grad.addColorStop(1, '#b8d61e');
+    } else {
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(1, '#d4d4d4');
+    }
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (type === 'basketball') {
+      ctx.strokeStyle = '#3a1d08';
+      ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(0, 15); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(15, 0); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(0, 0, 15, 6, 0, 0, Math.PI * 2); ctx.stroke();
+    } else if (type === 'tennis') {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(-6, 0, 13, -0.95, 0.95); ctx.stroke();
+      ctx.beginPath(); ctx.arc(6, 0, 13, Math.PI - 0.95, Math.PI + 0.95); ctx.stroke();
+    } else {
+      ctx.strokeStyle = '#9a9a9a';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#242424';
+      drawPentagon(0, -1, 5.5);
+      [[-9, -6], [9, -6], [0, 10]].forEach(([px, py]) => drawPentagon(px, py, 3.8));
+    }
+  }
+
+  function drawPentagon(cx, cy, r) {
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + i * (Math.PI * 2 / 5);
+      const px = cx + Math.cos(a) * r;
+      const py = cy + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
   }
 
   function drawBalloons() {
@@ -1992,6 +2170,7 @@
     const tierGroup = Math.min(2, Math.floor((save.upgrades.spring + save.upgrades.boost) / 4));
     drawBackground(theme);
     drawGround(theme);
+    if (theme.decor === 'stadium') drawBaseballDiamond();
     drawTrampoline(tierGroup);
     drawSlingshot();
     drawHeliClouds();
