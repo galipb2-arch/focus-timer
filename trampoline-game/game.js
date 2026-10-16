@@ -19,6 +19,9 @@
 
   const CAMERA_FOLLOW_Y = 300; // once char rises above this, camera scrolls with it
 
+  const WEB_ASSIST_BOOST = -16;   // one-time extra lift on the first bounce of a web-assist level
+  const WEB_ASSIST_DURATION = 650; // ms the web-swing visual stays on screen
+
   const UPGRADE_COSTS = [40, 90, 160, 260, 400]; // gold cost tier i -> i+1
   const GOLD_PER_COIN = 15;
   const LEVEL_FIRST_CLEAR_BONUS = 60;
@@ -59,6 +62,17 @@
       trunk: '#8a6a3a',
       accent: '#ff9b4a',
     },
+    city: {
+      skyTop: [8, 8, 28], skyTopHigh: [110, 150, 210],
+      skyBot: [32, 18, 50], skyBotHigh: [205, 185, 215],
+      groundNear: '#17171f', groundFar: '#33333f',
+      groundSpeckle: 'rgba(255,255,255,0.08)',
+      sunColor: '#eef1ff', sunGlow: 'rgba(200, 210, 255, 0.28)',
+      decor: 'buildings',
+      foliage: ['#1d1f2b', '#262a3a', '#33384d'],
+      trunk: '#111118',
+      accent: '#ff3b3b',
+    },
   };
 
   // ---------- Levels ----------
@@ -66,6 +80,7 @@
     { id: 0, name: 'Bölüm 1 · Yeşil Orman', icon: '🌲', theme: 'forest', coinHeights: [180, 270, 350, 440, 530, 620] },
     { id: 1, name: 'Bölüm 2 · Kar Dağı', icon: '🏔️', theme: 'snow', coinHeights: [200, 300, 410, 520, 640, 780] },
     { id: 2, name: 'Bölüm 3 · Çöl Vahası', icon: '🏜️', theme: 'desert', coinHeights: [240, 370, 500, 650, 820, 1050] },
+    { id: 3, name: 'Bölüm 4 · Örümcek Şehri', icon: '🕸️', theme: 'city', coinHeights: [280, 430, 580, 750, 950, 1200], webAssist: true },
   ];
 
   const UPGRADE_DEFS = [
@@ -91,6 +106,7 @@
 
   const menuGoldAmount = document.getElementById('menuGoldAmount');
   const levelList = document.getElementById('levelList');
+  const shopHint = document.getElementById('shopHint');
 
   const shopGoldAmount = document.getElementById('shopGoldAmount');
   const upgradeList = document.getElementById('upgradeList');
@@ -100,6 +116,7 @@
   const coinTotalEl = document.getElementById('coinTotal');
   const hudGoldAmount = document.getElementById('hudGoldAmount');
   const heightFill = document.getElementById('heightFill');
+  const hudExitBtn = document.getElementById('hudExitBtn');
 
   const completeLevelName = document.getElementById('completeLevelName');
   const completeGoldEarned = document.getElementById('completeGoldEarned');
@@ -219,6 +236,13 @@
     [660, 990].forEach((freq, i) => tone(a, freq, t + i * 0.07, 0.18, { type: 'square', gain: 0.07 }));
   }
 
+  // Web-shooter "thwip" — a fast descending blip
+  function playWebThwip() {
+    const a = audio();
+    if (!a) return;
+    tone(a, 1500, a.currentTime, 0.14, { type: 'square', gain: 0.09, glideTo: 280 });
+  }
+
   // ---------- Game state ----------
   const STATE = { LOADING: 'loading', MENU: 'menu', HOWTO: 'howto', SHOP: 'shop', PLAYING: 'playing', COMPLETE: 'complete' };
   let state = STATE.LOADING;
@@ -241,6 +265,9 @@
   let maxHeightReached = 0;
   let collectedCount = 0;
   let lastTime = 0;
+  let bounceCountThisLevel = 0;
+  let showShopHint = false;
+  const webAssist = { active: false, used: false, startTime: 0, heroSide: 1 };
 
   function currentLevel() { return LEVELS[currentLevelIndex]; }
   function currentTheme() { return THEMES[currentLevel().theme]; }
@@ -277,6 +304,10 @@
     hudLevel.textContent = level.name;
     hudGoldAmount.textContent = String(save.gold);
     heightFill.style.height = '0%';
+    bounceCountThisLevel = 0;
+    webAssist.active = false;
+    webAssist.used = false;
+    webAssist.heroSide = Math.random() < 0.5 ? 1 : -1;
   }
 
   function getNextLevelIndex() {
@@ -294,6 +325,21 @@
     hud.hidden = false;
   }
 
+  // Quit the current attempt without finishing it. If the level wasn't
+  // completed, surface the upgrade hint next time the menu is shown.
+  function endLevelEarly() {
+    if (state !== STATE.PLAYING) return;
+    const level = currentLevel();
+    if (collectedCount < level.coinHeights.length) {
+      showShopHint = true;
+    }
+    state = STATE.MENU;
+    hud.hidden = true;
+    renderMenu();
+    showScreen('menu');
+  }
+  hudExitBtn.addEventListener('click', endLevelEarly);
+
   // ---------- Input ----------
   function handleTap() {
     if (state !== STATE.PLAYING) return;
@@ -309,7 +355,7 @@
   }
 
   phoneFrame.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.screen')) return;
+    if (e.target.closest('.screen') || e.target.closest('button')) return;
     handleTap();
   });
 
@@ -351,6 +397,18 @@
       player.squash = 1;
       playBoing();
       spawnParticles(CENTER_X, TRAMPOLINE_Y + cameraOffset - 6, 5, '#bfe8ff');
+      bounceCountThisLevel += 1;
+
+      // Bölüm 4: on the very first bounce, the web hero swings in and
+      // carries the player up with a one-time extra lift.
+      if (currentLevel().webAssist && bounceCountThisLevel === 1 && !webAssist.used) {
+        webAssist.used = true;
+        webAssist.active = true;
+        webAssist.startTime = performance.now();
+        player.vy += WEB_ASSIST_BOOST;
+        playWebThwip();
+        spawnParticles(CENTER_X, player.y + cameraOffset, 10, '#ffffff');
+      }
     }
 
     cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
@@ -392,6 +450,7 @@
 
   function triggerLevelComplete() {
     state = STATE.COMPLETE;
+    showShopHint = false;
     playFanfare();
 
     const level = currentLevel();
@@ -543,6 +602,7 @@
         if (theme.decor === 'trees') drawTree(tx, y, scale, color, theme.trunk, false);
         else if (theme.decor === 'snowtrees') drawTree(tx, y, scale, color, theme.trunk, true);
         else if (theme.decor === 'cacti') drawCactus(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'buildings') drawBuilding(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -630,6 +690,48 @@
       ctx.moveTo(i, -38);
       ctx.lineTo(i, 34);
       ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function drawBuilding(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    const h = 70 + seededRand(seed) * 55;
+    const w = 34 + seededRand(seed + 2) * 14;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, w * 0.65, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const bodyGrad = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+    bodyGrad.addColorStop(0, lighten(color, 10));
+    bodyGrad.addColorStop(1, darken(color, 16));
+    ctx.fillStyle = bodyGrad;
+    ctx.fillRect(-w / 2, 46 - h, w, h);
+
+    // rooftop tank / antenna for silhouette variety
+    if (seededRand(seed + 4) > 0.5) {
+      ctx.fillStyle = darken(color, 20);
+      ctx.fillRect(-4, 46 - h - 14, 8, 14);
+    }
+
+    // lit windows in a grid, some randomly dark
+    const cols = Math.max(2, Math.floor(w / 9));
+    const rows = Math.max(3, Math.floor(h / 12));
+    for (let cy = 0; cy < rows; cy++) {
+      for (let cx = 0; cx < cols; cx++) {
+        const wSeed = seed + cy * 7.3 + cx * 3.1;
+        if (seededRand(wSeed) < 0.32) continue; // unlit window
+        const wx = -w / 2 + 5 + cx * (w - 10) / Math.max(1, cols - 1 || 1);
+        const wy = 46 - h + 8 + cy * (h - 16) / Math.max(1, rows - 1 || 1);
+        ctx.fillStyle = seededRand(wSeed + 1) > 0.15 ? 'rgba(255, 221, 140, 0.85)' : 'rgba(150, 210, 255, 0.7)';
+        ctx.fillRect(wx, wy, 3, 4);
+      }
     }
 
     ctx.restore();
@@ -930,14 +1032,97 @@
     });
   }
 
+  // Bölüm 4's one-time "web hero" swing assist: an original web-slinging
+  // ally swoops in on the first bounce, grabs the player with a web line,
+  // and carries them up before swinging off-screen.
+  function drawWebAssist() {
+    const t = Math.min(1, (performance.now() - webAssist.startTime) / WEB_ASSIST_DURATION);
+    const side = webAssist.heroSide;
+    const startX = CENTER_X + side * -260;
+    const endX = CENTER_X + side * 260;
+    const heroX = startX + (endX - startX) * t;
+    const px = CENTER_X;
+    const py = player.y + cameraOffset;
+    const heroY = py - 70 - Math.sin(t * Math.PI) * 55;
+
+    const handX = heroX + side * 16;
+    const handY = heroY + 18;
+    const wristX = px + 10;
+    const wristY = py - 10;
+    const midX = (handX + wristX) / 2;
+    const midY = (handY + wristY) / 2 + 14;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(handX, handY);
+    ctx.quadraticCurveTo(midX, midY, wristX, wristY);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(heroX, heroY);
+    ctx.rotate(side * -0.25);
+
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-side * 4, 10);
+    ctx.lineTo(-side * 16, 26);
+    ctx.moveTo(side * 2, 10);
+    ctx.lineTo(-side * 10, 30);
+    ctx.stroke();
+
+    const bodyGrad = ctx.createLinearGradient(-10, -14, 10, 16);
+    bodyGrad.addColorStop(0, '#c23a2e');
+    bodyGrad.addColorStop(1, '#6e1a14');
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 11, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(20,20,20,0.5)';
+    ctx.lineWidth = 0.8;
+    for (let i = -8; i <= 8; i += 4) {
+      ctx.beginPath();
+      ctx.moveTo(i, -12);
+      ctx.lineTo(i * 0.4, 14);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = '#6e1a14';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.lineTo(side * 16, 18);
+    ctx.stroke();
+
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(0, -16, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f2f2f2';
+    ctx.beginPath();
+    ctx.ellipse(-3, -17, 3, 2.2, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(3, -17, 3, 2.2, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
   function render() {
     const theme = currentTheme();
     const tierGroup = Math.min(2, Math.floor((save.upgrades.spring + save.upgrades.boost) / 4));
+    if (webAssist.active && performance.now() - webAssist.startTime > WEB_ASSIST_DURATION) {
+      webAssist.active = false;
+    }
     drawBackground(theme);
     drawGround(theme);
     drawTrampoline(tierGroup);
     drawCoins();
     drawCharacter(theme);
+    if (currentLevel().webAssist && webAssist.active) drawWebAssist();
     drawParticles();
   }
 
@@ -997,6 +1182,7 @@
   // ---------- Menu rendering ----------
   function renderMenu() {
     menuGoldAmount.textContent = String(save.gold);
+    shopHint.hidden = !showShopHint;
     levelList.innerHTML = '';
     LEVELS.forEach((level, i) => {
       const locked = i > save.unlockedLevel;
@@ -1109,6 +1295,7 @@
   document.getElementById('howtoStartBtn').addEventListener('click', () => startLevel(getNextLevelIndex()));
 
   document.getElementById('shopBtn').addEventListener('click', () => {
+    showShopHint = false;
     state = STATE.SHOP;
     renderShop();
     showScreen('shop');

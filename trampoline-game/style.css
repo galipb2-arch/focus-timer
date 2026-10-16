@@ -228,6 +228,53 @@ body {
   font-size: 13px;
 }
 
+.shop-btn-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+
+/* Animated hint pointing at the shop button after an incomplete run */
+.shop-hint {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.shop-hint-arrow {
+  font-size: 22px;
+  animation: hint-bounce 0.9s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 180, 0, 0.7));
+}
+
+.shop-hint-text {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-shadow: 0 0 6px rgba(255, 180, 0, 0.6);
+}
+
+@keyframes hint-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-hint-arrow { animation: none; }
+}
+
 .btn {
   border: none;
   padding: 15px 20px;
@@ -240,6 +287,11 @@ body {
   transition: transform 0.1s ease;
 }
 .btn:active { transform: scale(0.96); }
+
+.btn-lg {
+  font-size: 20px;
+  padding: 17px 20px;
+}
 
 .btn-primary {
   background: linear-gradient(180deg, #ffe28a, var(--gold-glow));
@@ -357,29 +409,29 @@ body {
 
 .upgrade-name {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 18px;
   flex: 1;
 }
 
 .upgrade-tier-dots {
   display: flex;
-  gap: 3px;
+  gap: 4px;
 }
 
 .upgrade-tier-dots .dot {
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
 }
 
 .upgrade-tier-dots .dot.filled {
   background: var(--gold);
-  box-shadow: 0 0 5px rgba(255, 180, 0, 0.8);
+  box-shadow: 0 0 6px rgba(255, 180, 0, 0.8);
 }
 
 .upgrade-desc {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
   margin: 0 0 10px;
   line-height: 1.4;
@@ -395,17 +447,17 @@ body {
 .upgrade-cost {
   font-family: 'Baloo 2', sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 17px;
   color: var(--gold);
 }
 
 .upgrade-buy-btn {
   border: none;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 10px;
   font-family: 'Baloo 2', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   cursor: pointer;
   background: linear-gradient(180deg, #ffe28a, var(--gold-glow));
   color: #3a2400;
@@ -472,6 +524,24 @@ body {
 .hud-gold { color: #ffe28a; }
 
 .coin-dot { font-size: 15px; }
+
+.hud-exit-btn {
+  position: absolute;
+  top: 54px;
+  left: 18px;
+  pointer-events: auto;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.hud-exit-btn:active { transform: scale(0.95); }
 
 .height-track {
   align-self: flex-end;

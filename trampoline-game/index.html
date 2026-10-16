@@ -38,7 +38,13 @@
       <div class="menu-buttons">
         <button class="btn btn-primary" id="startBtn">BAŞLA</button>
         <div class="menu-buttons-row">
-          <button class="btn btn-secondary" id="shopBtn">🛠️ DÜKKAN</button>
+          <div class="shop-btn-wrap">
+            <div class="shop-hint" id="shopHint" hidden>
+              <span class="shop-hint-arrow">⬆️</span>
+              <span class="shop-hint-text">Yükseltme yap!</span>
+            </div>
+            <button class="btn btn-secondary" id="shopBtn">🛠️ DÜKKAN</button>
+          </div>
           <button class="btn btn-secondary" id="howtoBtn">❔ NASIL OYNANIR</button>
         </div>
       </div>
@@ -70,7 +76,11 @@
         </li>
         <li>
           <span class="howto-icon">🗺️</span>
-          <span>Bölümü geçince yeni bir tema açılır: Kar Dağı ve Çöl Vahası seni bekliyor.</span>
+          <span>Bölümü geçince yeni bir tema açılır: Kar Dağı, Çöl Vahası ve Örümcek Şehri seni bekliyor.</span>
+        </li>
+        <li>
+          <span class="howto-icon">✕</span>
+          <span>Takılırsan <b>Bölümü Bitir</b> ile oyundan çıkabilirsin — ama önce Dükkan'dan güçlenmeyi dene!</span>
         </li>
       </ul>
       <div class="menu-buttons">
@@ -100,6 +110,7 @@
           <div class="hud-gold"><span class="coin-dot">💰</span><span id="hudGoldAmount">0</span></div>
         </div>
       </div>
+      <button class="hud-exit-btn" id="hudExitBtn">✕ Bölümü Bitir</button>
       <div class="height-track">
         <div class="height-fill" id="heightFill"></div>
       </div>
@@ -115,8 +126,8 @@
       <p class="complete-gold" id="completeGoldEarned">+60 🪙</p>
       <p class="complete-unlock" id="completeUnlockMsg" hidden>Yeni bölüm açıldı!</p>
       <div class="menu-buttons">
-        <button class="btn btn-primary" id="nextLevelBtn" hidden>SONRAKİ BÖLÜM</button>
-        <button class="btn btn-secondary" id="replayBtn">TEKRAR OYNA</button>
+        <button class="btn btn-primary btn-lg" id="nextLevelBtn" hidden>SONRAKİ BÖLÜM</button>
+        <button class="btn btn-secondary btn-lg" id="replayBtn">TEKRAR OYNA</button>
         <button class="btn btn-secondary" id="menuBtn">ANA MENÜ</button>
       </div>
     </section>
