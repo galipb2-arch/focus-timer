@@ -202,6 +202,17 @@
       trunk: '#c0392b',
       accent: '#ff4f9e',
     },
+    temple: {
+      skyTop: [20, 30, 16], skyTopHigh: [255, 220, 160],
+      skyBot: [40, 54, 28], skyBotHigh: [255, 236, 200],
+      groundNear: '#3a3024', groundFar: '#6a5a3e',
+      groundSpeckle: 'rgba(40,60,20,0.2)',
+      sunColor: '#fff4d0', sunGlow: 'rgba(255, 220, 140, 0.4)',
+      decor: 'temple',
+      foliage: ['#2f5a2a', '#3f7a3a', '#4f8f44'], // vine/jungle color variants
+      trunk: '#6a5a3e',
+      accent: '#e0b84a',
+    },
   };
 
   // ---------- Levels ----------
@@ -235,6 +246,8 @@
     { id: 15, name: 'Bölüm 16 · Hayalet Kale', icon: '👻', theme: 'haunted', coinHeights: [260, 410, 600, 900, 1310, 1800, 2400, 2900, 3300, 3600], collectible: 'ghost' },
     // A pastel candy kingdom — collect swirly lollipops instead of gold.
     { id: 16, name: 'Bölüm 17 · Şeker Diyarı', icon: '🍭', theme: 'candy', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'candy' },
+    // An overgrown jungle temple — collect ancient gold relics instead of gold coins.
+    { id: 17, name: 'Bölüm 18 · Antik Tapınak', icon: '🗿', theme: 'temple', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'relic' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -547,8 +560,9 @@
       isLantern: level.collectible === 'lantern',
       isGhost: level.collectible === 'ghost',
       isCandy: level.collectible === 'candy',
+      isRelic: level.collectible === 'relic',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : level.collectible === 'lantern' ? '🏮' : level.collectible === 'ghost' ? '👻' : level.collectible === 'candy' ? '🍭' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : level.collectible === 'lantern' ? '🏮' : level.collectible === 'ghost' ? '👻' : level.collectible === 'candy' ? '🍭' : level.collectible === 'relic' ? '🗿' : '🪙';
     cometBoost = 0;
     particles = [];
     balloons = makeBalloons(level);
@@ -849,7 +863,7 @@
         if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : coin.isRelic ? '#e0b84a' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1273,6 +1287,13 @@
       return;
     }
 
+    if (theme.decor === 'temple') {
+      drawSun(theme, climb);
+      drawDecorLayer(theme, 0.35, 420, theme.foliage[0], 1, 0.6);
+      drawDecorLayer(theme, 0.6, 320, theme.foliage[1], 2, 0.8);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -1405,6 +1426,7 @@
         else if (theme.decor === 'lantern') drawLantern(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'haunted') drawCastleSpire(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'candy') drawCandyDecor(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'temple') drawTemplePillar(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -2002,6 +2024,38 @@
     ctx.restore();
   }
 
+  // Bölüm 18: a weathered stone pillar wrapped in jungle vines, tiled
+  // sparsely among the ruins.
+  function drawTemplePillar(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.5) return; // thin out the grid
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 18, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const h = 60 + seededRand(seed + 1) * 26;
+    ctx.fillStyle = '#9a8a6a';
+    ctx.fillRect(-11, -h, 22, h + 46);
+    ctx.fillRect(-14, -h, 28, 8);
+    ctx.fillRect(-14, 38, 28, 8);
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let t = -h; t < 46; t += 10) {
+      const vx = Math.sin(t * 0.25 + seed) * 10;
+      if (t === -h) ctx.moveTo(vx, t); else ctx.lineTo(vx, t);
+    }
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
   function lighten(hex, amt) { return shade(hex, amt); }
   function darken(hex, amt) { return shade(hex, -amt); }
   function shade(hex, amt) {
@@ -2351,7 +2405,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : coin.isRelic ? '#e0b84a' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -2379,6 +2433,8 @@
         drawGhost();
       } else if (coin.isCandy) {
         drawCandyPickup();
+      } else if (coin.isRelic) {
+        drawRelic();
       } else {
         ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
         if (coin.ballType) {
@@ -2656,6 +2712,35 @@
       ctx.stroke();
     }
     ctx.restore();
+  }
+
+  // Bölüm 18's collectible: a small golden idol mask. Assumes the context
+  // is already translated to its center.
+  function drawRelic() {
+    const grad = ctx.createLinearGradient(-10, -12, 10, 12);
+    grad.addColorStop(0, '#fff3c0');
+    grad.addColorStop(0.5, '#e0b84a');
+    grad.addColorStop(1, '#8a6a1a');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(0, -12);
+    ctx.quadraticCurveTo(10, -10, 9, 2);
+    ctx.quadraticCurveTo(8, 12, 0, 12);
+    ctx.quadraticCurveTo(-8, 12, -9, 2);
+    ctx.quadraticCurveTo(-10, -10, 0, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#6a4a0a';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#6a4a0a';
+    ctx.beginPath(); ctx.arc(-4, -1, 1.6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(4, -1, 1.6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-3, 6);
+    ctx.quadraticCurveTo(0, 9, 3, 6);
+    ctx.stroke();
   }
 
   // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
