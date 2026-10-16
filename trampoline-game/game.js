@@ -158,6 +158,17 @@
       trunk: '#8a5a3a',
       accent: '#3fd6c8',
     },
+    cave: {
+      skyTop: [10, 4, 22], skyTopHigh: [70, 20, 90],
+      skyBot: [20, 8, 40], skyBotHigh: [140, 60, 170],
+      groundNear: '#241a2c', groundFar: '#3a2a46',
+      groundSpeckle: 'rgba(180,120,255,0.12)',
+      sunColor: '#e8c8ff', sunGlow: 'rgba(200, 120, 255, 0.35)',
+      decor: 'cave',
+      foliage: ['#6a3fa0', '#8a4fc0', '#c060e0'], // crystal color variants
+      trunk: '#333',
+      accent: '#e060ff',
+    },
   };
 
   // ---------- Levels ----------
@@ -183,6 +194,8 @@
     { id: 11, name: 'Bölüm 12 · Volkan Ağzı', icon: '🌋', theme: 'volcano', coinHeights: [230, 360, 530, 800, 1160, 1600, 2130, 2580, 2930, 3200], collectible: 'ember' },
     // Swimming up from the ocean floor toward the sunlit surface — collect pearls instead of gold.
     { id: 12, name: 'Bölüm 13 · Okyanus Derinliği', icon: '🫧', theme: 'deepsea', coinHeights: [260, 410, 600, 900, 1310, 1800, 2400, 2900, 3300, 3600], collectible: 'pearl' },
+    // A glowing underground cavern — collect crystal gems instead of gold.
+    { id: 13, name: 'Bölüm 14 · Kristal Mağara', icon: '💎', theme: 'cave', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'crystal' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -491,8 +504,9 @@
       isSnowflake: level.collectible === 'snowflake',
       isEmber: level.collectible === 'ember',
       isPearl: level.collectible === 'pearl',
+      isCrystal: level.collectible === 'crystal',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : '🪙';
     cometBoost = 0;
     particles = [];
     balloons = makeBalloons(level);
@@ -793,7 +807,7 @@
         if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1189,6 +1203,13 @@
       return;
     }
 
+    if (theme.decor === 'cave') {
+      drawStarfield();
+      drawDecorLayer(theme, 0.35, 440, theme.foliage[0], 1, 0.55);
+      drawDecorLayer(theme, 0.6, 340, theme.foliage[1], 2, 0.75);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -1317,6 +1338,7 @@
         else if (theme.decor === 'aurora') drawIceSpike(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'volcano') drawLavaRock(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'deepsea') drawCoral(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'cave') drawCrystalCluster(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -1744,6 +1766,53 @@
     ctx.globalAlpha = 1;
   }
 
+  // Bölüm 14: a glowing crystal cluster jutting from the cave wall, tiled
+  // sparsely alongside the sparkle dust.
+  function drawCrystalCluster(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.5) return; // thin out the grid
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 18, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const h = 46 + seededRand(seed + 1) * 28;
+    const glow = ctx.createRadialGradient(0, -h * 0.4, 2, 0, -h * 0.4, 50);
+    glow.addColorStop(0, 'rgba(255,255,255,0.35)');
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, -h * 0.4, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    const grad = ctx.createLinearGradient(-12, 0, 12, 0);
+    grad.addColorStop(0, lighten(color, 30));
+    grad.addColorStop(0.5, '#ffffff');
+    grad.addColorStop(1, darken(color, 10));
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(0, -h);
+    ctx.lineTo(11, -h * 0.5);
+    ctx.lineTo(8, 46);
+    ctx.lineTo(-8, 46);
+    ctx.lineTo(-11, -h * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -h);
+    ctx.lineTo(0, 46);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
   function lighten(hex, amt) { return shade(hex, amt); }
   function darken(hex, amt) { return shade(hex, -amt); }
   function shade(hex, amt) {
@@ -2093,7 +2162,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -2113,6 +2182,8 @@
         drawEmber();
       } else if (coin.isPearl) {
         drawPearl();
+      } else if (coin.isCrystal) {
+        drawCrystalGem();
       } else {
         ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
         if (coin.ballType) {
@@ -2266,6 +2337,30 @@
     ctx.beginPath();
     ctx.ellipse(-4, -5, 3, 2, -0.5, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  // Bölüm 14's collectible: a faceted crystal gem in place of a gold coin.
+  // Assumes the context is already translated to its center.
+  function drawCrystalGem() {
+    const grad = ctx.createLinearGradient(-10, -13, 10, 12);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.4, '#e9b8ff');
+    grad.addColorStop(1, '#8a3fc0');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(0, -13);
+    ctx.lineTo(9, -3);
+    ctx.lineTo(6, 12);
+    ctx.lineTo(-6, 12);
+    ctx.lineTo(-9, -3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -13); ctx.lineTo(0, 12);
+    ctx.moveTo(-9, -3); ctx.lineTo(9, -3);
+    ctx.stroke();
   }
 
   // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
