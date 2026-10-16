@@ -114,6 +114,17 @@
       trunk: '#2a2a2a',
       accent: '#d1232a',
     },
+    space: {
+      skyTop: [3, 4, 16], skyTopHigh: [18, 14, 48],
+      skyBot: [10, 8, 34], skyBotHigh: [46, 30, 90],
+      groundNear: '#4a4a56', groundFar: '#7a7a8a',
+      groundSpeckle: 'rgba(0,0,0,0.3)',
+      sunColor: '#fff6d0', sunGlow: 'rgba(200, 200, 255, 0.25)',
+      decor: 'space',
+      foliage: ['#6b4fa0', '#3f7bbf', '#c75a8a'], // planet body color variants
+      trunk: '#333',
+      accent: '#8ab4ff',
+    },
   };
 
   // ---------- Levels ----------
@@ -131,6 +142,8 @@
     { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 500, 1400, 2300, 3200, 4000], webswing: 650 },
     // A giant baseball stadium — collect sports balls instead of gold coins.
     { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220, 380, 580, 850, 1200, 1650], collectible: 'sport' },
+    // Deep space — each comet collected speeds up every future bounce and tap for the rest of the run.
+    { id: 9, name: 'Bölüm 10 · Uzay Yarışı', icon: '☄️', theme: 'space', coinHeights: [280, 520, 950, 1600, 2600, 4200], collectible: 'comet' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -160,6 +173,11 @@
   const SLING_V_MIN = 16;
   const SLING_V_RANGE = 30;
   const SLING_PULL = 70;
+
+  // Bölüm 10's comet collectibles: each one collected permanently speeds up
+  // every future trampoline bounce and tap boost for the rest of the run,
+  // so the climb snowballs faster the more comets are gathered.
+  const COMET_SPEED_STEP = 0.12;
 
   const SLIME_R = 20;
 
@@ -281,6 +299,7 @@
 
   function currentBaseBounce() { return -(BASE_SPRING + save.upgrades.spring * SPRING_STEP); }
   function currentBoostImpulse() { return -(BASE_BOOST + save.upgrades.boost * BOOST_STEP); }
+  function cometSpeedMultiplier() { return 1 + cometBoost; }
 
   // ---------- Audio (synthesized, no assets) ----------
   let actx = null;
@@ -389,6 +408,7 @@
   let runGold = 0;                // gold earned from coins in the current run
   let heli = null;                // { worldY, boarded, speed, burst, clouds } on helicopter levels
   let web = null;                 // { worldY, boarded, speed, burst, swingPhase, side } on web-swing levels
+  let cometBoost = 0;             // accumulates on comet levels; multiplies bounce/boost speed
   let showShopHint = false;       // nudges the player toward Yükseltmeler after an unfinished run
   let shopReturn = 'menu'; // where the upgrades screen returns to: 'menu' | 'game'
   let particles = [];
@@ -428,8 +448,10 @@
       collected: false,
       wobble: Math.random() * Math.PI * 2,
       ballType: level.collectible === 'sport' ? SPORT_BALL_TYPES[i % SPORT_BALL_TYPES.length] : null,
+      isComet: level.collectible === 'comet',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : '🪙';
+    cometBoost = 0;
     particles = [];
     balloons = makeBalloons(level);
     slimes = makeSlimes(level);
@@ -593,7 +615,7 @@
     const now = performance.now();
     const airborne = player.y < TRAMPOLINE_Y - CHAR_RADIUS - 1;
     if (airborne && player.boostCount < MAX_BOOSTS_PER_CYCLE && now - player.lastBoostAt > BOOST_COOLDOWN_MS) {
-      player.vy += currentBoostImpulse();
+      player.vy += currentBoostImpulse() * cometSpeedMultiplier();
       player.boostCount += 1;
       player.lastBoostAt = now;
       playBoost();
@@ -669,7 +691,7 @@
 
     if (player.vy > 0 && player.y + CHAR_RADIUS >= TRAMPOLINE_Y) {
       player.y = TRAMPOLINE_Y - CHAR_RADIUS;
-      player.vy = currentBaseBounce();
+      player.vy = currentBaseBounce() * cometSpeedMultiplier();
       player.boostCount = 0;
       player.squash = 1;
       if (sling) sling.ready = true;
@@ -726,9 +748,10 @@
         save.gold += coinGold;
         runGold += coinGold;
         hudGoldAmount.textContent = String(save.gold);
+        if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1094,6 +1117,14 @@
       return;
     }
 
+    if (theme.decor === 'space') {
+      drawNebula();
+      drawStarfield();
+      drawDecorLayer(theme, 0.3, 560, theme.foliage[0], 1, 0.55);
+      drawDecorLayer(theme, 0.55, 440, theme.foliage[1], 2, 0.75);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -1218,6 +1249,7 @@
         else if (theme.decor === 'snowtrees') drawTree(tx, y, scale, color, theme.trunk, true);
         else if (theme.decor === 'cacti') drawCactus(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'stadium') drawLightTower(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'space') drawPlanet(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -1350,6 +1382,98 @@
     }
 
     ctx.restore();
+  }
+
+  // Bölüm 10: a distant planet, sometimes ringed, tiled sparsely across
+  // the starfield so it reads as deep space rather than a tiled pattern.
+  function drawPlanet(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.45) return; // thin out the grid so it reads as sparse, not tiled
+    const r = 9 + seededRand(seed + 1) * 7;
+    const hasRing = seededRand(seed) > 0.55;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    if (hasRing) {
+      ctx.save();
+      ctx.rotate(-0.3);
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = lighten(color, 30);
+      ctx.lineWidth = r * 0.22;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 1.7, r * 0.5, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    const bodyGrad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.2, 0, 0, r);
+    bodyGrad.addColorStop(0, lighten(color, 25));
+    bodyGrad.addColorStop(1, darken(color, 20));
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = darken(color, 10);
+    ctx.globalAlpha = 0.35;
+    [[-0.2, 0.3, 0.55], [0.35, -0.2, 0.3]].forEach(([dx, dy, rr]) => {
+      ctx.beginPath();
+      ctx.arc(dx * r, dy * r, rr * r * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+  }
+
+  // Soft fixed-position nebula glows behind the starfield.
+  function drawNebula() {
+    const blobs = [
+      { x: CANVAS_W * 0.22, y: 130, r: 170, color: 'rgba(130, 70, 200, 0.22)' },
+      { x: CANVAS_W * 0.8, y: 260, r: 150, color: 'rgba(60, 120, 220, 0.18)' },
+      { x: CANVAS_W * 0.55, y: 60, r: 120, color: 'rgba(220, 90, 160, 0.14)' },
+    ];
+    blobs.forEach(b => {
+      const g = ctx.createRadialGradient(b.x, b.y, 4, b.x, b.y, b.r);
+      g.addColorStop(0, b.color);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // Three parallax layers of twinkling stars, tiled the same way as the
+  // decor layers so they scroll smoothly with the camera.
+  function drawStarfield() {
+    drawStarLayer(0.15, 70, 11, 0.5, 0.55);
+    drawStarLayer(0.32, 54, 23, 0.75, 0.85);
+    drawStarLayer(0.55, 40, 37, 1.0, 1.2);
+  }
+
+  function drawStarLayer(parallax, spacing, seedOffset, baseAlpha, sizeScale) {
+    const scroll = cameraOffset * parallax;
+    const rowStart = -1;
+    const rowEnd = Math.ceil(CANVAS_H / spacing) + 2;
+    const t = performance.now() / 700;
+    ctx.fillStyle = '#ffffff';
+    for (let i = rowStart; i < rowEnd; i++) {
+      const y = i * spacing - (scroll % spacing);
+      const rowSeed = (i + seedOffset * 13) * 12.9898;
+      for (let x = -20; x < CANVAS_W + 20; x += 38) {
+        const starSeed = rowSeed + x * 0.021;
+        const tx = x + (seededRand(starSeed) - 0.5) * 30;
+        const twinkle = 0.5 + 0.5 * Math.sin(t + starSeed * 7);
+        ctx.globalAlpha = baseAlpha * (0.5 + 0.5 * twinkle);
+        ctx.beginPath();
+        ctx.arc(tx, y, sizeScale * (0.6 + seededRand(starSeed + 1) * 0.8), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
   }
 
   function lighten(hex, amt) { return shade(hex, amt); }
@@ -1655,7 +1779,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -1666,31 +1790,67 @@
       ctx.save();
       ctx.translate(CENTER_X, y + bob);
       const spin = Math.sin(coin.wobble * 0.7);
-      ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
 
-      if (coin.ballType) {
-        drawSportBall(coin.ballType);
+      if (coin.isComet) {
+        drawComet();
       } else {
-        const grad = ctx.createRadialGradient(-5, -5, 2, 0, 0, 16);
-        grad.addColorStop(0, '#fff8d6');
-        grad.addColorStop(0.45, '#ffd24a');
-        grad.addColorStop(1, '#a86e00');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(0, 0, 16, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#8a5a00';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
+        if (coin.ballType) {
+          drawSportBall(coin.ballType);
+        } else {
+          const grad = ctx.createRadialGradient(-5, -5, 2, 0, 0, 16);
+          grad.addColorStop(0, '#fff8d6');
+          grad.addColorStop(0.45, '#ffd24a');
+          grad.addColorStop(1, '#a86e00');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, 16, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#8a5a00';
+          ctx.lineWidth = 2;
+          ctx.stroke();
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.arc(0, 0, 10, Math.PI * 1.1, Math.PI * 1.7);
-        ctx.stroke();
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.arc(0, 0, 10, Math.PI * 1.1, Math.PI * 1.7);
+          ctx.stroke();
+        }
       }
       ctx.restore();
     });
+  }
+
+  // Bölüm 10's collectible: a glowing comet with a trailing icy tail.
+  // Assumes the context is already translated to the comet's center.
+  function drawComet() {
+    ctx.save();
+    ctx.rotate(-0.55);
+    const tailGrad = ctx.createLinearGradient(0, 0, 0, 36);
+    tailGrad.addColorStop(0, 'rgba(255,255,255,0.9)');
+    tailGrad.addColorStop(0.55, 'rgba(150,200,255,0.35)');
+    tailGrad.addColorStop(1, 'rgba(150,200,255,0)');
+    ctx.fillStyle = tailGrad;
+    ctx.beginPath();
+    ctx.moveTo(-4, 0);
+    ctx.quadraticCurveTo(-1.5, 18, -3, 36);
+    ctx.quadraticCurveTo(0, 20, 3, 36);
+    ctx.quadraticCurveTo(1.5, 18, 4, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    const headGrad = ctx.createRadialGradient(-3, -3, 1, 0, 0, 13);
+    headGrad.addColorStop(0, '#ffffff');
+    headGrad.addColorStop(0.5, '#bfe0ff');
+    headGrad.addColorStop(1, '#5a8fd6');
+    ctx.fillStyle = headGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
   }
 
   // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
