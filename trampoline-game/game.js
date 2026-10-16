@@ -147,6 +147,17 @@
       trunk: '#201512',
       accent: '#ff5a26',
     },
+    deepsea: {
+      skyTop: [2, 10, 28], skyTopHigh: [40, 140, 190],
+      skyBot: [4, 24, 48], skyBotHigh: [90, 190, 220],
+      groundNear: '#8a6a3a', groundFar: '#d9b870',
+      groundSpeckle: 'rgba(60,40,10,0.2)',
+      sunColor: '#eafbff', sunGlow: 'rgba(180, 240, 255, 0.35)',
+      decor: 'deepsea',
+      foliage: ['#1f6e5c', '#2c8f6a', '#3fae7a'], // coral/seaweed color variants
+      trunk: '#8a5a3a',
+      accent: '#3fd6c8',
+    },
   };
 
   // ---------- Levels ----------
@@ -170,6 +181,8 @@
     { id: 10, name: 'Bölüm 11 · Kutup Işıkları', icon: '🌌', theme: 'aurora', coinHeights: [180, 280, 420, 630, 900, 1250, 1670, 2010, 2290, 2500], collectible: 'snowflake' },
     // A smoldering volcanic crater — collect glowing embers instead of gold.
     { id: 11, name: 'Bölüm 12 · Volkan Ağzı', icon: '🌋', theme: 'volcano', coinHeights: [230, 360, 530, 800, 1160, 1600, 2130, 2580, 2930, 3200], collectible: 'ember' },
+    // Swimming up from the ocean floor toward the sunlit surface — collect pearls instead of gold.
+    { id: 12, name: 'Bölüm 13 · Okyanus Derinliği', icon: '🫧', theme: 'deepsea', coinHeights: [260, 410, 600, 900, 1310, 1800, 2400, 2900, 3300, 3600], collectible: 'pearl' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -477,8 +490,9 @@
       isComet: level.collectible === 'comet',
       isSnowflake: level.collectible === 'snowflake',
       isEmber: level.collectible === 'ember',
+      isPearl: level.collectible === 'pearl',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : '🪙';
     cometBoost = 0;
     particles = [];
     balloons = makeBalloons(level);
@@ -779,7 +793,7 @@
         if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1168,6 +1182,13 @@
       return;
     }
 
+    if (theme.decor === 'deepsea') {
+      drawBubbles();
+      drawDecorLayer(theme, 0.35, 420, theme.foliage[0], 1, 0.55);
+      drawDecorLayer(theme, 0.6, 320, theme.foliage[1], 2, 0.75);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -1295,6 +1316,7 @@
         else if (theme.decor === 'space') drawPlanet(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'aurora') drawIceSpike(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'volcano') drawLavaRock(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'deepsea') drawCoral(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -1661,6 +1683,67 @@
     ctx.restore();
   }
 
+  // Bölüm 13: a swaying coral/seaweed frond cluster, tiled sparsely along
+  // the ascent through the water column.
+  function drawCoral(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.5) return; // thin out the grid
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 20, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const sway = Math.sin(performance.now() / 1400 + seed) * 8;
+    for (let i = 0; i < 3; i++) {
+      const bx = (i - 1) * 10;
+      const h = 50 + seededRand(seed + i) * 30;
+      ctx.strokeStyle = i % 2 === 0 ? lighten(color, 15) : color;
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(bx, 46);
+      ctx.quadraticCurveTo(bx + sway * 0.6, 46 - h * 0.5, bx + sway, 46 - h);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  // Three parallax layers of rising bubbles, drifting upward over time
+  // independent of the camera's own vertical scroll.
+  function drawBubbles() {
+    drawBubbleLayer(0.25, 130, 5, 0.35, 1.0);
+    drawBubbleLayer(0.45, 100, 17, 0.5, 1.4);
+    drawBubbleLayer(0.7, 80, 29, 0.65, 1.8);
+  }
+
+  function drawBubbleLayer(parallax, spacing, seedOffset, baseAlpha, sizeScale) {
+    const drift = (performance.now() / 18) % spacing;
+    const scroll = cameraOffset * parallax + drift;
+    const rowStart = -1;
+    const rowEnd = Math.ceil(CANVAS_H / spacing) + 2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+    ctx.lineWidth = 1;
+    for (let i = rowStart; i < rowEnd; i++) {
+      const y = i * spacing - (scroll % spacing);
+      const rowSeed = (i + seedOffset * 13) * 12.9898;
+      for (let x = -20; x < CANVAS_W + 20; x += 46) {
+        const bSeed = rowSeed + x * 0.019;
+        const tx = x + (seededRand(bSeed) - 0.5) * 34;
+        const r = sizeScale * (1.2 + seededRand(bSeed + 1) * 2.2);
+        ctx.globalAlpha = baseAlpha;
+        ctx.beginPath();
+        ctx.arc(tx, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
   function lighten(hex, amt) { return shade(hex, amt); }
   function darken(hex, amt) { return shade(hex, -amt); }
   function shade(hex, amt) {
@@ -2010,7 +2093,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -2028,6 +2111,8 @@
         drawSnowflake();
       } else if (coin.isEmber) {
         drawEmber();
+      } else if (coin.isPearl) {
+        drawPearl();
       } else {
         ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
         if (coin.ballType) {
@@ -2149,6 +2234,38 @@
       ctx.restore();
     });
     ctx.restore();
+  }
+
+  // Bölüm 13's collectible: an iridescent pearl in a small open half-shell.
+  // Assumes the context is already translated to its center.
+  function drawPearl() {
+    ctx.fillStyle = '#c99a5a';
+    ctx.beginPath();
+    ctx.ellipse(0, 7, 14, 7, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = '#8a6a3a';
+    ctx.lineWidth = 1;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * 5, 1);
+      ctx.lineTo(i * 3, 7);
+      ctx.stroke();
+    }
+
+    const grad = ctx.createRadialGradient(-4, -4, 1, 0, 0, 11);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.55, '#eaf6ff');
+    grad.addColorStop(0.85, '#c9ddea');
+    grad.addColorStop(1, '#9fb8cc');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, -1, 10.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath();
+    ctx.ellipse(-4, -5, 3, 2, -0.5, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
