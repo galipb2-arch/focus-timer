@@ -126,13 +126,16 @@
   const HELI_BURST_ADD = 3.2;
   const HELI_BURST_MAX = 8;
 
-  // Bölüm 8's web-slinger rescue: boards like the helicopter (auto-climb,
-  // tap for bursts) but the hero swings beside a web line instead of flying.
-  const WEB_BASE = 7;
-  const WEB_BASE_STEP = 0.8;
+  // Bölüm 8's web-slinger rescue: unlike the helicopter's steady auto-climb,
+  // the web swing has no baseline speed — it bleeds off fast between taps,
+  // so the player has to keep tapping continuously to keep climbing at all.
+  // Stop tapping and the hero starts sinking back down.
+  const WEB_TAP_IMPULSE_BASE = 2.4;  // speed added per tap, tier 0
+  const WEB_TAP_STEP = 0.4;          // added per Ağ Gücü tier
+  const WEB_DECAY = 0.9;             // multiplicative speed decay per frame-tick
   const WEB_MAX = 17;
-  const WEB_BURST_ADD = 3.5;
-  const WEB_BURST_MAX = 9;
+  const WEB_MIN = -2;                // gentle sink when the player stops tapping
+  const WEB_TAP_COOLDOWN_MS = 90;
   const WEB_SWING_SPEED = 0.045;
   const WEB_SWING_AMP = 70;
 
@@ -158,7 +161,7 @@
     { key: 'armor', icon: '🛡️', name: 'Zırh', minLevel: 3, descFor: t => `Balon ve slime direnci +%${t * 10}` },
     { key: 'aim', icon: '🎯', name: 'Usta Nişancı', minLevel: 5, descFor: t => `Mancınıkta yeşil bölge %${Math.round(100 - 70 * Math.max(0.6, 1 - t * 0.05))}` },
     { key: 'rotor', icon: '🚁', name: 'Pervane Gücü', minLevel: 6, descFor: t => `Helikopter hızı +${(t * 0.7).toFixed(1)}, bulutlar daha az yavaşlatır` },
-    { key: 'web', icon: '🕸️', name: 'Ağ Gücü', minLevel: 7, descFor: t => `Ağ sallanma hızı +${(t * WEB_BASE_STEP).toFixed(1)}` },
+    { key: 'web', icon: '🕸️', name: 'Ağ Gücü', minLevel: 7, descFor: t => `Dokunuş başına ağ itiş gücü +${(t * WEB_TAP_STEP).toFixed(1)}` },
   ];
 
   // Higher tiers open up as later levels are unlocked: 2 tiers at the start, +1 per level.
@@ -579,10 +582,15 @@
       return;
     }
     if (state === STATE.WEB) {
-      audio();
-      web.burst = Math.min(WEB_BURST_MAX, web.burst + WEB_BURST_ADD);
-      spawnParticles(CENTER_X, player.y - 60 + cameraOffset, 4, '#ffffff');
-      playBoost();
+      const now = performance.now();
+      if (now - web.lastTapAt > WEB_TAP_COOLDOWN_MS) {
+        audio();
+        const impulse = WEB_TAP_IMPULSE_BASE + save.upgrades.web * WEB_TAP_STEP;
+        web.speed = Math.min(WEB_MAX, web.speed + impulse);
+        web.lastTapAt = now;
+        spawnParticles(CENTER_X, player.y - 60 + cameraOffset, 4, '#ffffff');
+        playBoost();
+      }
       return;
     }
     if (state === STATE.SLING) {
@@ -780,12 +788,13 @@
   }
 
   // ---------- Web-swing (Bölüm 8) ----------
-  // An original web-slinging hero boards the hero at a fixed height and
-  // carries them straight up, tap-bursting for extra speed like the
-  // helicopter — but the hero himself swings in a pendulum arc alongside.
+  // An original web-slinging hero boards the hero at a fixed height. Unlike
+  // the helicopter's steady auto-climb, speed decays fast every frame —
+  // each tap pumps in a burst of upward speed, but stop tapping and the
+  // hero sinks back down, so reaching the top takes continuous clicking.
   function makeWeb(level) {
     const worldY = TRAMPOLINE_Y - level.webswing;
-    return { worldY, boarded: false, speed: 0, burst: 0, swingPhase: 0, side: Math.random() < 0.5 ? 1 : -1 };
+    return { worldY, boarded: false, speed: 0, swingPhase: 0, side: Math.random() < 0.5 ? 1 : -1, lastTapAt: -1e9 };
   }
 
   function boardWeb() {
@@ -795,11 +804,11 @@
     player.vy = -2;
     player.squash = 0;
     player.boostCount = 0;
-    web.speed = 2;
-    web.burst = 0;
+    web.speed = 3;
     web.swingPhase = 0;
+    web.lastTapAt = -1e9;
     cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
-    slingResult.textContent = 'Ağ atıldı! Dokunarak hızlan 🕸️';
+    slingResult.textContent = 'Ağ atıldı! Sürekli dokunarak sallan 🕸️';
     slingResult.style.color = '#ff8a7a';
     slingResult.hidden = false;
     clearTimeout(slingResultTimer);
@@ -809,11 +818,15 @@
   }
 
   function updateWeb(dt) {
-    const base = Math.min(WEB_MAX, WEB_BASE + save.upgrades.web * WEB_BASE_STEP);
-    web.burst *= Math.pow(0.97, dt);
-    const target = Math.min(WEB_MAX, base + web.burst);
-    web.speed += (target - web.speed) * Math.min(1, 0.06 * dt);
+    web.speed *= Math.pow(WEB_DECAY, dt);
+    web.speed = Math.max(WEB_MIN, web.speed);
     player.y -= web.speed * dt;
+    // a soft floor at the boarding height — stop tapping for too long and
+    // the web hero's grip holds the hero here instead of letting go
+    if (player.y > web.worldY) {
+      player.y = web.worldY;
+      web.speed = Math.max(web.speed, 0);
+    }
     player.vy = -web.speed;
     web.swingPhase += WEB_SWING_SPEED * dt;
     cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
