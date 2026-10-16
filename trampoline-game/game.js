@@ -254,10 +254,18 @@
     UPGRADE_DEFS.forEach(d => { upgrades[d.key] = clampTier(s && s.upgrades && s.upgrades[d.key]); });
     const base = { gold: 0, unlockedLevel: 0, completedLevels: LEVELS.map(() => false), upgrades };
     if (!s) return base;
+    const completedLevels = LEVELS.map((_, i) => !!(s.completedLevels && s.completedLevels[i]));
+    let unlockedLevel = typeof s.unlockedLevel === 'number' ? Math.min(s.unlockedLevel, LEVELS.length - 1) : 0;
+    // Migrate older saves: a level already marked complete must always
+    // unlock the one after it, even if unlockedLevel was never bumped
+    // past an earlier, shorter LEVELS list (e.g. before a new level existed).
+    completedLevels.forEach((done, i) => {
+      if (done) unlockedLevel = Math.max(unlockedLevel, Math.min(i + 1, LEVELS.length - 1));
+    });
     return {
       gold: typeof s.gold === 'number' ? s.gold : 0,
-      unlockedLevel: typeof s.unlockedLevel === 'number' ? Math.min(s.unlockedLevel, LEVELS.length - 1) : 0,
-      completedLevels: LEVELS.map((_, i) => !!(s.completedLevels && s.completedLevels[i])),
+      unlockedLevel,
+      completedLevels,
       upgrades,
     };
   }
