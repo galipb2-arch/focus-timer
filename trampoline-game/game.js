@@ -180,6 +180,28 @@
       trunk: '#5a3a20',
       accent: '#ffb347',
     },
+    haunted: {
+      skyTop: [8, 4, 14], skyTopHigh: [40, 20, 60],
+      skyBot: [16, 8, 24], skyBotHigh: [80, 40, 110],
+      groundNear: '#141018', groundFar: '#241c2c',
+      groundSpeckle: 'rgba(120,255,160,0.1)',
+      sunColor: '#c8ffe0', sunGlow: 'rgba(140, 255, 180, 0.3)',
+      decor: 'haunted',
+      foliage: ['#2a1f38', '#3a2a4a', '#4a3860'], // castle spire variants
+      trunk: '#201828',
+      accent: '#7fff9f',
+    },
+    candy: {
+      skyTop: [255, 200, 230], skyTopHigh: [200, 240, 255],
+      skyBot: [255, 220, 240], skyBotHigh: [230, 250, 255],
+      groundNear: '#e85a8a', groundFar: '#ffb3cc',
+      groundSpeckle: 'rgba(255,255,255,0.3)',
+      sunColor: '#fff6fa', sunGlow: 'rgba(255, 220, 240, 0.5)',
+      decor: 'candy',
+      foliage: ['#ff6b9d', '#ffa6c9', '#ffd3e6'], // candy cane color variants
+      trunk: '#c0392b',
+      accent: '#ff4f9e',
+    },
   };
 
   // ---------- Levels ----------
@@ -209,6 +231,10 @@
     { id: 13, name: 'Bölüm 14 · Kristal Mağara', icon: '💎', theme: 'cave', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'crystal' },
     // A warm night market full of floating paper lanterns — collect lanterns instead of gold.
     { id: 14, name: 'Bölüm 15 · Fener Bayramı', icon: '🏮', theme: 'lantern', coinHeights: [270, 430, 630, 940, 1370, 1880, 2500, 3020, 3440, 3750], collectible: 'lantern' },
+    // A spooky haunted castle under a sickly green moon — collect friendly ghost lights instead of gold.
+    { id: 15, name: 'Bölüm 16 · Hayalet Kale', icon: '👻', theme: 'haunted', coinHeights: [260, 410, 600, 900, 1310, 1800, 2400, 2900, 3300, 3600], collectible: 'ghost' },
+    // A pastel candy kingdom — collect swirly lollipops instead of gold.
+    { id: 16, name: 'Bölüm 17 · Şeker Diyarı', icon: '🍭', theme: 'candy', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'candy' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -519,8 +545,10 @@
       isPearl: level.collectible === 'pearl',
       isCrystal: level.collectible === 'crystal',
       isLantern: level.collectible === 'lantern',
+      isGhost: level.collectible === 'ghost',
+      isCandy: level.collectible === 'candy',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : level.collectible === 'lantern' ? '🏮' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : level.collectible === 'lantern' ? '🏮' : level.collectible === 'ghost' ? '👻' : level.collectible === 'candy' ? '🍭' : '🪙';
     cometBoost = 0;
     particles = [];
     balloons = makeBalloons(level);
@@ -821,7 +849,7 @@
         if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1231,6 +1259,20 @@
       return;
     }
 
+    if (theme.decor === 'haunted') {
+      drawStarfield();
+      drawDecorLayer(theme, 0.35, 440, theme.foliage[0], 1, 0.65);
+      drawDecorLayer(theme, 0.6, 340, theme.foliage[1], 2, 0.85);
+      return;
+    }
+
+    if (theme.decor === 'candy') {
+      drawSun(theme, climb);
+      drawDecorLayer(theme, 0.35, 420, theme.foliage[0], 1, 0.6);
+      drawDecorLayer(theme, 0.6, 320, theme.foliage[1], 2, 0.8);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -1361,6 +1403,8 @@
         else if (theme.decor === 'deepsea') drawCoral(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'cave') drawCrystalCluster(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'lantern') drawLantern(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'haunted') drawCastleSpire(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'candy') drawCandyDecor(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -1892,6 +1936,72 @@
     ctx.restore();
   }
 
+  // Bölüm 16: a dark gothic castle spire with a glowing window, tiled
+  // sparsely across the haunted skyline.
+  function drawCastleSpire(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.5) return; // thin out the grid
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 16, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const h = 60 + seededRand(seed + 1) * 30;
+    ctx.fillStyle = color;
+    ctx.fillRect(-10, -h * 0.4, 20, h * 0.4 + 46);
+    ctx.beginPath();
+    ctx.moveTo(0, -h);
+    ctx.lineTo(13, -h * 0.4);
+    ctx.lineTo(-13, -h * 0.4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(140,255,170,0.85)';
+    ctx.beginPath();
+    ctx.arc(0, -h * 0.15, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Bölüm 17: a striped candy cane jutting up from the pastel ground,
+  // tiled sparsely alongside the sunlit sky.
+  function drawCandyDecor(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.5) return; // thin out the grid
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 14, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const h = 60 + seededRand(seed + 1) * 26;
+    ctx.lineWidth = 9;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(0, 46);
+    ctx.quadraticCurveTo(0, 46 - h * 0.7, 10, 46 - h);
+    ctx.stroke();
+
+    ctx.strokeStyle = color;
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.moveTo(0, 46);
+    ctx.quadraticCurveTo(0, 46 - h * 0.7, 10, 46 - h);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.restore();
+  }
+
   function lighten(hex, amt) { return shade(hex, amt); }
   function darken(hex, amt) { return shade(hex, -amt); }
   function shade(hex, amt) {
@@ -2241,7 +2351,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -2265,6 +2375,10 @@
         drawCrystalGem();
       } else if (coin.isLantern) {
         drawLanternPickup();
+      } else if (coin.isGhost) {
+        drawGhost();
+      } else if (coin.isCandy) {
+        drawCandyPickup();
       } else {
         ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
         if (coin.ballType) {
@@ -2482,6 +2596,66 @@
     ctx.beginPath();
     ctx.ellipse(0, 10, 4, 1.6, 0, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  // Bölüm 16's collectible: a small friendly ghost light. Assumes the
+  // context is already translated to its center.
+  function drawGhost() {
+    const bob = Math.sin(performance.now() / 300) * 1.5;
+    const glow = ctx.createRadialGradient(0, bob, 1, 0, bob, 16);
+    glow.addColorStop(0, 'rgba(180,255,200,0.6)');
+    glow.addColorStop(1, 'rgba(180,255,200,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, bob, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(230,255,240,0.95)';
+    ctx.beginPath();
+    ctx.arc(0, bob - 2, 9, Math.PI, 0);
+    ctx.lineTo(9, bob + 9);
+    for (let i = 0; i < 3; i++) {
+      const wx = 9 - i * 6;
+      ctx.quadraticCurveTo(wx - 3, bob + 13, wx - 6, bob + 9);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#2a2a2a';
+    ctx.beginPath(); ctx.arc(-3, bob - 2, 1.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, bob - 2, 1.4, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Bölüm 17's collectible: a swirly lollipop. Assumes the context is
+  // already translated to its center.
+  function drawCandyPickup() {
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 9);
+    ctx.lineTo(0, 16);
+    ctx.stroke();
+
+    const grad = ctx.createRadialGradient(-3, -3, 1, 0, 0, 11);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(1, '#ff6b9d');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 11, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#ff2f7e';
+    ctx.lineWidth = 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, 11, 0, Math.PI * 2);
+    ctx.clip();
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath();
+      ctx.arc(i * 5, 0, 11, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
