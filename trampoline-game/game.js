@@ -130,12 +130,12 @@
   // the web swing has no baseline speed — it bleeds off fast between taps,
   // so the player has to keep tapping continuously to keep climbing at all.
   // Stop tapping and the hero starts sinking back down.
-  const WEB_TAP_IMPULSE_BASE = 2.4;  // speed added per tap, tier 0
-  const WEB_TAP_STEP = 0.4;          // added per Ağ Gücü tier
-  const WEB_DECAY = 0.9;             // multiplicative speed decay per frame-tick
+  const WEB_TAP_IMPULSE_BASE = 3.2;  // speed added per tap, tier 0
+  const WEB_TAP_STEP = 0.45;         // added per Ağ Gücü tier
+  const WEB_DECAY = 0.915;           // multiplicative speed decay per frame-tick
   const WEB_MAX = 17;
   const WEB_MIN = -2;                // gentle sink when the player stops tapping
-  const WEB_TAP_COOLDOWN_MS = 90;
+  const WEB_TAP_COOLDOWN_MS = 80;
   const WEB_SWING_SPEED = 0.045;
   const WEB_SWING_AMP = 70;
 
