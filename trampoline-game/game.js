@@ -136,6 +136,17 @@
       trunk: '#333',
       accent: '#7fffd4',
     },
+    volcano: {
+      skyTop: [26, 8, 6], skyTopHigh: [90, 40, 24],
+      skyBot: [70, 20, 10], skyBotHigh: [168, 78, 30],
+      groundNear: '#1c1210', groundFar: '#3a241c',
+      groundSpeckle: 'rgba(255,120,40,0.18)',
+      sunColor: '#ffb366', sunGlow: 'rgba(255, 110, 40, 0.4)',
+      decor: 'volcano',
+      foliage: ['#2a1a16', '#3a2420', '#4a2e26'], // lava-rock color variants
+      trunk: '#201512',
+      accent: '#ff5a26',
+    },
   };
 
   // ---------- Levels ----------
@@ -157,6 +168,8 @@
     { id: 9, name: 'Bölüm 10 · Uzay Yarışı', icon: '☄️', theme: 'space', coinHeights: [280, 410, 570, 810, 1090, 1460, 1930, 2490, 3310, 4200], collectible: 'comet' },
     // The Northern Lights ripple overhead — collect snowflakes instead of gold.
     { id: 10, name: 'Bölüm 11 · Kutup Işıkları', icon: '🌌', theme: 'aurora', coinHeights: [180, 280, 420, 630, 900, 1250, 1670, 2010, 2290, 2500], collectible: 'snowflake' },
+    // A smoldering volcanic crater — collect glowing embers instead of gold.
+    { id: 11, name: 'Bölüm 12 · Volkan Ağzı', icon: '🌋', theme: 'volcano', coinHeights: [230, 360, 530, 800, 1160, 1600, 2130, 2580, 2930, 3200], collectible: 'ember' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -463,8 +476,9 @@
       ballType: level.collectible === 'sport' ? SPORT_BALL_TYPES[i % SPORT_BALL_TYPES.length] : null,
       isComet: level.collectible === 'comet',
       isSnowflake: level.collectible === 'snowflake',
+      isEmber: level.collectible === 'ember',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : '🪙';
     cometBoost = 0;
     particles = [];
     balloons = makeBalloons(level);
@@ -765,7 +779,7 @@
         if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1147,6 +1161,13 @@
       return;
     }
 
+    if (theme.decor === 'volcano') {
+      drawSun(theme, climb);
+      drawDecorLayer(theme, 0.35, 460, theme.foliage[0], 1, 0.6);
+      drawDecorLayer(theme, 0.6, 360, theme.foliage[1], 2, 0.8);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -1273,6 +1294,7 @@
         else if (theme.decor === 'stadium') drawLightTower(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'space') drawPlanet(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'aurora') drawIceSpike(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'volcano') drawLavaRock(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -1557,6 +1579,83 @@
     ctx.beginPath();
     ctx.moveTo(0, -h);
     ctx.lineTo(0, 46);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // Bölüm 12: a jagged volcanic rock spire with a glowing lava crack seam,
+  // tiled sparsely up the slope.
+  function drawLavaRock(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.55) return; // thin out the grid
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 22, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const h = 50 + seededRand(seed + 1) * 34;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, -h);
+    ctx.lineTo(8, -h * 0.6);
+    ctx.lineTo(16, -h * 0.3);
+    ctx.lineTo(12, 10);
+    ctx.lineTo(18, 46);
+    ctx.lineTo(-18, 46);
+    ctx.lineTo(-12, 10);
+    ctx.lineTo(-16, -h * 0.3);
+    ctx.lineTo(-8, -h * 0.6);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#ff7a33';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(0, -h * 0.8);
+    ctx.lineTo(-4, -h * 0.3);
+    ctx.lineTo(3, 0);
+    ctx.lineTo(-2, 30);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+  }
+
+  // Bölüm 12: a glowing lava pool at the base of the crater, drawn once
+  // around the trampoline (same pattern as the baseball diamond).
+  function drawVolcanoCrater() {
+    const y = GROUND_Y + cameraOffset;
+    if (y > CANVAS_H + 40 || y < -260) return;
+    ctx.save();
+    ctx.translate(CENTER_X, y - 20);
+
+    const glow = ctx.createRadialGradient(0, 10, 10, 0, 10, 180);
+    glow.addColorStop(0, 'rgba(255,140,40,0.5)');
+    glow.addColorStop(1, 'rgba(255,140,40,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 180, 90, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const lavaGrad = ctx.createRadialGradient(0, 20, 6, 0, 20, 110);
+    lavaGrad.addColorStop(0, '#fff3b0');
+    lavaGrad.addColorStop(0.4, '#ff9f2e');
+    lavaGrad.addColorStop(1, '#8a2000');
+    ctx.fillStyle = lavaGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 24, 110, 34, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(40,20,14,0.9)';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.ellipse(0, 20, 130, 42, 0, 0, Math.PI * 2);
     ctx.stroke();
 
     ctx.restore();
@@ -1911,7 +2010,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -1927,6 +2026,8 @@
         drawComet();
       } else if (coin.isSnowflake) {
         drawSnowflake();
+      } else if (coin.isEmber) {
+        drawEmber();
       } else {
         ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
         if (coin.ballType) {
@@ -2017,6 +2118,37 @@
     ctx.beginPath();
     ctx.arc(0, 0, 3, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  // Bölüm 12's collectible: a glowing ember with small flickering flame
+  // tips. Assumes the context is already translated to its center.
+  function drawEmber() {
+    const flicker = 0.85 + 0.15 * Math.sin(performance.now() / 110);
+    ctx.save();
+    ctx.scale(flicker, flicker);
+    const grad = ctx.createRadialGradient(-4, -4, 1, 0, 0, 14);
+    grad.addColorStop(0, '#fff3c0');
+    grad.addColorStop(0.4, '#ffb347');
+    grad.addColorStop(0.75, '#ff5a26');
+    grad.addColorStop(1, '#8a1f05');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 13, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255, 220, 140, 0.8)';
+    [[-1, -14], [5, -11], [-6, -10]].forEach(([fx, fy], i) => {
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.scale(1, 0.8 + 0.3 * Math.sin(performance.now() / 90 + i));
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(3, -5, 0, -9);
+      ctx.quadraticCurveTo(-3, -5, 0, 0);
+      ctx.fill();
+      ctx.restore();
+    });
+    ctx.restore();
   }
 
   // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
@@ -2505,6 +2637,7 @@
     drawBackground(theme);
     drawGround(theme);
     if (theme.decor === 'stadium') drawBaseballDiamond();
+    if (theme.decor === 'volcano') drawVolcanoCrater();
     drawTrampoline(tierGroup);
     drawSlingshot();
     drawHeliClouds();
