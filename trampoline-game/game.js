@@ -125,6 +125,17 @@
       trunk: '#333',
       accent: '#8ab4ff',
     },
+    aurora: {
+      skyTop: [4, 10, 24], skyTopHigh: [20, 40, 72],
+      skyBot: [8, 20, 40], skyBotHigh: [42, 72, 104],
+      groundNear: '#c9dcea', groundFar: '#eef6fb',
+      groundSpeckle: 'rgba(140,170,200,0.25)',
+      sunColor: '#eaf6ff', sunGlow: 'rgba(200, 230, 255, 0.3)',
+      decor: 'aurora',
+      foliage: ['#bfefff', '#dff5ff', '#eafcff'], // ice-spike color variants
+      trunk: '#333',
+      accent: '#7fffd4',
+    },
   };
 
   // ---------- Levels ----------
@@ -144,6 +155,8 @@
     { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220, 310, 400, 510, 640, 790, 970, 1160, 1400, 1650], collectible: 'sport' },
     // Deep space — each comet collected speeds up every future bounce and tap for the rest of the run.
     { id: 9, name: 'Bölüm 10 · Uzay Yarışı', icon: '☄️', theme: 'space', coinHeights: [280, 410, 570, 810, 1090, 1460, 1930, 2490, 3310, 4200], collectible: 'comet' },
+    // The Northern Lights ripple overhead — collect snowflakes instead of gold.
+    { id: 10, name: 'Bölüm 11 · Kutup Işıkları', icon: '🌌', theme: 'aurora', coinHeights: [180, 280, 420, 630, 900, 1250, 1670, 2010, 2290, 2500], collectible: 'snowflake' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -449,8 +462,9 @@
       wobble: Math.random() * Math.PI * 2,
       ballType: level.collectible === 'sport' ? SPORT_BALL_TYPES[i % SPORT_BALL_TYPES.length] : null,
       isComet: level.collectible === 'comet',
+      isSnowflake: level.collectible === 'snowflake',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : '🪙';
     cometBoost = 0;
     particles = [];
     balloons = makeBalloons(level);
@@ -751,7 +765,7 @@
         if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1125,6 +1139,14 @@
       return;
     }
 
+    if (theme.decor === 'aurora') {
+      drawStarfield();
+      drawAuroraRibbons();
+      drawDecorLayer(theme, 0.4, 460, theme.foliage[0], 1, 0.4);
+      drawDecorLayer(theme, 0.65, 360, theme.foliage[1], 2, 0.55);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -1250,6 +1272,7 @@
         else if (theme.decor === 'cacti') drawCactus(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'stadium') drawLightTower(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'space') drawPlanet(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'aurora') drawIceSpike(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -1474,6 +1497,69 @@
       }
     }
     ctx.globalAlpha = 1;
+  }
+
+  // Bölüm 11: flowing aurora ribbons drifting across the night sky,
+  // screen-space fixed with a slow vertical parallax drift.
+  function drawAuroraRibbons() {
+    const t = performance.now() / 1800;
+    const bands = [
+      { baseY: 90, amp: 34, color: 'rgba(90, 230, 170, 0.28)', speed: 1.0 },
+      { baseY: 160, amp: 26, color: 'rgba(130, 120, 255, 0.22)', speed: 0.7 },
+      { baseY: 230, amp: 30, color: 'rgba(90, 200, 255, 0.18)', speed: 1.3 },
+    ];
+    bands.forEach((b, bi) => {
+      const scrollY = b.baseY - (cameraOffset * 0.1) % 400;
+      ctx.beginPath();
+      for (let x = -10; x <= CANVAS_W + 10; x += 12) {
+        const yy = scrollY + Math.sin(x * 0.012 + t * b.speed + bi) * b.amp;
+        if (x === -10) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+      }
+      for (let x = CANVAS_W + 10; x >= -10; x -= 12) {
+        const yy = scrollY + 40 + Math.sin(x * 0.012 + t * b.speed + bi) * b.amp;
+        ctx.lineTo(x, yy);
+      }
+      ctx.closePath();
+      ctx.fillStyle = b.color;
+      ctx.fill();
+    });
+  }
+
+  // A tall crystalline ice spike jutting up from below — tiled sparsely
+  // alongside the aurora so the skyline reads as a frozen peak field.
+  function drawIceSpike(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.5) return; // thin out the grid to avoid a solid wall of spikes
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 20, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const h = 60 + seededRand(seed + 1) * 30;
+    const grad = ctx.createLinearGradient(-14, 0, 14, 0);
+    grad.addColorStop(0, lighten(color, 10));
+    grad.addColorStop(0.5, '#ffffff');
+    grad.addColorStop(1, darken(color, 10));
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(0, -h);
+    ctx.lineTo(14, 46);
+    ctx.lineTo(-14, 46);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(140,190,220,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -h);
+    ctx.lineTo(0, 46);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   function lighten(hex, amt) { return shade(hex, amt); }
@@ -1825,7 +1911,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -1839,6 +1925,8 @@
 
       if (coin.isComet) {
         drawComet();
+      } else if (coin.isSnowflake) {
+        drawSnowflake();
       } else {
         ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
         if (coin.ballType) {
@@ -1897,6 +1985,38 @@
     ctx.strokeStyle = 'rgba(255,255,255,0.6)';
     ctx.lineWidth = 1.3;
     ctx.stroke();
+  }
+
+  // Bölüm 11's collectible: a glowing six-pointed snowflake in place of a
+  // gold coin. Assumes the context is already translated to its center.
+  function drawSnowflake() {
+    ctx.save();
+    ctx.rotate(performance.now() / 2000);
+    ctx.strokeStyle = '#eafdff';
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+      ctx.save();
+      ctx.rotate((Math.PI / 3) * i);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -13);
+      ctx.moveTo(0, -5);
+      ctx.lineTo(-4, -8);
+      ctx.moveTo(0, -5);
+      ctx.lineTo(4, -8);
+      ctx.moveTo(0, -9);
+      ctx.lineTo(-3.5, -11.5);
+      ctx.moveTo(0, -9);
+      ctx.lineTo(3.5, -11.5);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   // Bölüm 9's collectibles: a soccer ball, basketball or tennis ball in
