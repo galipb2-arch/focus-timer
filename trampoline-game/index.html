@@ -10,128 +10,153 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="phone-frame" id="phoneFrame">
-    <canvas id="game"></canvas>
+<div class="phone-frame" id="phoneFrame">
+  <canvas id="game"></canvas>
 
-    <!-- Yükleniyor ekranı -->
-    <section class="screen loading-screen" id="loadingScreen">
-      <div class="logo-badge">🏆</div>
-      <h1 class="game-title">TRAMBOLİN<br>KAHRAMANI</h1>
-      <div class="loading-bar-track">
-        <div class="loading-bar-fill" id="loadingFill"></div>
+  <!-- Yükleniyor ekranı -->
+  <section class="screen loading-screen" id="loadingScreen">
+    <div class="logo-badge">🏆</div>
+    <h1 class="game-title">TRAMBOLİN<br>KAHRAMANI</h1>
+    <div class="loading-bar-track">
+      <div class="loading-bar-fill" id="loadingFill"></div>
+    </div>
+    <p class="loading-label" id="loadingLabel">Orman hazırlanıyor… 0%</p>
+  </section>
+
+  <!-- Ana menü -->
+  <section class="screen menu-screen" id="menuScreen" hidden>
+    <div class="menu-header">
+      <div class="menu-header-title">
+        <div class="logo-badge tiny">🥷</div>
+        <h1 class="game-title small">TRAMBOLİN KAHRAMANI</h1>
       </div>
-      <p class="loading-label" id="loadingLabel">Orman hazırlanıyor… 0%</p>
-    </section>
-
-    <!-- Ana menü -->
-    <section class="screen menu-screen" id="menuScreen" hidden>
-      <div class="menu-header">
-        <div class="menu-header-title">
-          <div class="logo-badge tiny">🥷</div>
-          <h1 class="game-title small">TRAMBOLİN KAHRAMANI</h1>
-        </div>
-        <div class="gold-badge" id="menuGold"><span class="coin-dot">🪙</span><span id="menuGoldAmount">0</span></div>
-      </div>
-
-      <div class="level-list" id="levelList"><!-- JS ile doldurulur --></div>
-
-      <div class="menu-buttons">
-        <button class="btn btn-primary" id="startBtn">BAŞLA</button>
-        <div class="menu-buttons-row">
-          <div class="shop-btn-wrap">
-            <div class="shop-hint" id="shopHint" hidden>
-              <span class="shop-hint-arrow">⬆️</span>
-              <span class="shop-hint-text">Yükseltme yap!</span>
-            </div>
-            <button class="btn btn-secondary" id="shopBtn">🛠️ DÜKKAN</button>
-          </div>
-          <button class="btn btn-secondary" id="howtoBtn">❔ NASIL OYNANIR</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Nasıl oynanır ekranı -->
-    <section class="screen howto-screen" id="howtoScreen" hidden>
-      <h2 class="howto-title">Nasıl Oynanır?</h2>
-      <ul class="howto-list">
-        <li>
-          <span class="howto-icon">🤸</span>
-          <span>Kahramanın trambolin üzerinde otomatik olarak zıplar.</span>
-        </li>
-        <li>
-          <span class="howto-icon">👆</span>
-          <span>Havadayken ekrana dokun, her dokunuş onu biraz daha <b>yükseğe</b> fırlatır!</span>
-        </li>
-        <li>
-          <span class="howto-icon">🪙</span>
-          <span>Ne kadar yükseğe çıkarsan, o kadar çok <b>altın ödül</b> toplarsın.</span>
-        </li>
-        <li>
-          <span class="howto-icon">🎭</span>
-          <span>Tüm ödülleri topla, bölümü geç ve kahramanın <b>gizemli maskesi</b> düşsün!</span>
-        </li>
-        <li>
-          <span class="howto-icon">🛠️</span>
-          <span>Topladığın altınlarla <b>Dükkan</b>'dan trambolini geliştir: daha güçlü yaylar, daha hızlı zıplama!</span>
-        </li>
-        <li>
-          <span class="howto-icon">🗺️</span>
-          <span>Bölümü geçince yeni bir tema açılır: Kar Dağı, Çöl Vahası ve Örümcek Şehri seni bekliyor.</span>
-        </li>
-        <li>
-          <span class="howto-icon">✕</span>
-          <span>Takılırsan <b>Bölümü Bitir</b> ile oyundan çıkabilirsin — ama önce Dükkan'dan güçlenmeyi dene!</span>
-        </li>
-      </ul>
-      <div class="menu-buttons">
-        <button class="btn btn-primary" id="howtoStartBtn">ANLADIM, BAŞLA!</button>
-        <button class="btn btn-secondary" id="howtoBackBtn">GERİ</button>
-      </div>
-    </section>
-
-    <!-- Dükkan / yükseltme ekranı -->
-    <section class="screen shop-screen" id="shopScreen" hidden>
-      <h2 class="howto-title">🛠️ Dükkan</h2>
-      <div class="gold-badge large" id="shopGold"><span class="coin-dot">🪙</span><span id="shopGoldAmount">0</span></div>
-
-      <div class="upgrade-list" id="upgradeList"><!-- JS ile doldurulur --></div>
-
-      <div class="menu-buttons">
-        <button class="btn btn-secondary" id="shopBackBtn">GERİ</button>
-      </div>
-    </section>
-
-    <!-- Oyun içi HUD -->
-    <div class="hud" id="hud" hidden>
-      <div class="hud-top">
-        <div class="hud-level" id="hudLevel">Bölüm 1 · Yeşil Orman</div>
-        <div class="hud-badges">
-          <div class="hud-coins"><span class="coin-dot">🪙</span><span id="coinCount">0</span>/<span id="coinTotal">6</span></div>
-          <div class="hud-gold"><span class="coin-dot">💰</span><span id="hudGoldAmount">0</span></div>
-        </div>
-      </div>
-      <button class="hud-exit-btn" id="hudExitBtn">✕ Bölümü Bitir</button>
-      <div class="height-track">
-        <div class="height-fill" id="heightFill"></div>
-      </div>
+      <div class="gold-badge" id="menuGold"><span class="coin-dot">🪙</span><span id="menuGoldAmount">0</span></div>
     </div>
 
-    <!-- Bölüm tamamlandı ekranı -->
-    <section class="screen complete-screen" id="completeScreen" hidden>
-      <div class="confetti-layer" id="confettiLayer"></div>
-      <div class="logo-badge">🎉</div>
-      <h1 class="game-title small">TEBRİKLER!</h1>
-      <p class="complete-sub" id="completeLevelName">Bölüm 1 Tamamlandı</p>
-      <p class="complete-sub2">Kahramanın maskesi düştü! 🎭➡️😄</p>
-      <p class="complete-gold" id="completeGoldEarned">+60 🪙</p>
-      <p class="complete-unlock" id="completeUnlockMsg" hidden>Yeni bölüm açıldı!</p>
-      <div class="menu-buttons">
-        <button class="btn btn-primary btn-lg" id="nextLevelBtn" hidden>SONRAKİ BÖLÜM</button>
-        <button class="btn btn-secondary btn-lg" id="replayBtn">TEKRAR OYNA</button>
-        <button class="btn btn-secondary" id="menuBtn">ANA MENÜ</button>
+    <div class="level-list" id="levelList"><!-- JS ile doldurulur --></div>
+
+    <div class="menu-buttons">
+      <button class="btn btn-primary" id="startBtn">OYNA</button>
+      <div class="menu-buttons-row">
+        <div class="shop-btn-wrap">
+          <div class="shop-hint" id="shopHint" hidden>
+            <span class="shop-hint-arrow">⬆️</span>
+            <span class="shop-hint-text">Yükseltme yap!</span>
+          </div>
+          <button class="btn btn-secondary" id="shopBtn">🛠️ YÜKSELTMELER</button>
+        </div>
+        <button class="btn btn-secondary" id="howtoBtn">❔ NASIL OYNANIR</button>
       </div>
-    </section>
+    </div>
+  </section>
+
+  <!-- Nasıl oynanır ekranı -->
+  <section class="screen howto-screen" id="howtoScreen" hidden>
+    <h2 class="howto-title">Nasıl Oynanır?</h2>
+    <ul class="howto-list">
+      <li>
+        <span class="howto-icon">🤸</span>
+        <span>Kahramanın trambolin üzerinde otomatik olarak zıplar.</span>
+      </li>
+      <li>
+        <span class="howto-icon">👆</span>
+        <span>Havadayken ekrana dokun, her dokunuş onu biraz daha <b>yükseğe</b> fırlatır!</span>
+      </li>
+      <li>
+        <span class="howto-icon">🪙</span>
+        <span>Ne kadar yükseğe çıkarsan, o kadar çok <b>altın ödül</b> toplarsın.</span>
+      </li>
+      <li>
+        <span class="howto-icon">🎭</span>
+        <span>Tüm ödülleri topla, bölümü geç ve kahramanın <b>gizemli maskesi</b> düşsün!</span>
+      </li>
+      <li>
+        <span class="howto-icon">🛠️</span>
+        <span>Topladığın altınlarla <b>Yükseltmeler</b>'den trambolini geliştir — oyun sırasında da açabilirsin, etkisi hemen başlar!</span>
+      </li>
+      <li>
+        <span class="howto-icon">🗺️</span>
+        <span>Bölümü geçince yeni bir tema açılır: Kar Dağı, Çöl Vahası, Balon Şenliği ve Slime Körfezi, Turkuaz Ada, Gökdelenler ve Örümcek Kulesi seni bekliyor. Gökdelenlerde helikoptere binince dokunarak hızlan, pervanelerle bulutları yar! 🚁 Örümcek Kulesi'nde trambolinden zıpladıktan sonra bir örümcek kahraman sana ağ atıp birlikte yükseklere taşır 🕸️ — dokunarak sallanma hızını artırabilirsin. Her bölümde yeni yükseltme kademeleri açılır. Mancınığa ulaşınca ekrana basılı tut, metre yeşildeyken bırak! 🎯 Balonları itip geç 🎈, yapışan slime'ları dokunarak silkele! Uçuş Takviyesi her dokunuşta daha çok slime atar, Yay Gücü ise yükünü hafifletir.</span>
+      </li>
+      <li>
+        <span class="howto-icon">✕</span>
+        <span>Takılırsan HUD'daki <b>Bölümü Bitir</b> ile ana menüye dönebilirsin — ama önce Yükseltmeler'den güçlenmeyi dene!</span>
+      </li>
+    </ul>
+    <div class="menu-buttons">
+      <button class="btn btn-primary" id="howtoStartBtn">ANLADIM, OYNA!</button>
+      <button class="btn btn-secondary" id="howtoBackBtn">GERİ</button>
+    </div>
+  </section>
+
+  <!-- Dükkan / yükseltme ekranı -->
+  <section class="screen shop-screen" id="shopScreen" hidden>
+    <h2 class="howto-title">🛠️ Yükseltmeler</h2>
+    <div class="gold-badge large" id="shopGold"><span class="coin-dot">🪙</span><span id="shopGoldAmount">0</span></div>
+
+    <div class="upgrade-list" id="upgradeList"><!-- JS ile doldurulur --></div>
+
+    <div class="menu-buttons">
+      <button class="btn btn-secondary" id="shopBackBtn">GERİ</button>
+    </div>
+  </section>
+
+  <!-- Oyun içi HUD -->
+  <div class="hud" id="hud" hidden>
+    <div class="hud-top">
+      <div class="hud-level" id="hudLevel">Bölüm 1 · Yeşil Orman</div>
+      <div class="hud-badges">
+        <div class="hud-coins"><span class="coin-dot">🪙</span><span id="coinCount">0</span>/<span id="coinTotal">6</span></div>
+        <div class="hud-gold"><span class="coin-dot">💰</span><span id="hudGoldAmount">0</span></div>
+      </div>
+    </div>
+    <div class="slime-warn" id="slimeWarn" hidden></div>
+    <div class="height-track">
+      <div class="height-fill" id="heightFill"></div>
+    </div>
+    <div class="hud-bottom">
+      <div class="hud-chips">
+        <div class="chip-col" id="chipsLeft"></div>
+        <div class="chip-col right" id="chipsRight"></div>
+      </div>
+      <div class="hud-actions">
+        <button class="hud-shop-btn" id="hudShopBtn">🛠️ Yükseltmeler</button>
+        <button class="hud-shop-btn" id="hudRestartBtn">🔄 Yeniden Başlat</button>
+        <button class="hud-shop-btn hud-quit-btn" id="hudQuitBtn">✕ Bölümü Bitir</button>
+      </div>
+    </div>
   </div>
+
+  <!-- Mancınık fırlatma metresi -->
+  <div class="sling-meter" id="slingMeter" hidden>
+    <div class="sling-meter-title">FIRLATMA GÜCÜ</div>
+    <div class="sling-meter-bar">
+      <div class="sling-seg sling-red"></div>
+      <div class="sling-seg sling-yellow"></div>
+      <div class="sling-seg sling-green"></div>
+      <div class="sling-marker" id="slingMarker"></div>
+    </div>
+    <div class="sling-meter-labels"><span>Yetersiz</span><span>Orta</span><span>Yeterli</span></div>
+    <div class="sling-meter-hint">Basılı tut, yeşilde bırak!</div>
+  </div>
+  <div class="sling-result" id="slingResult" hidden></div>
+
+  <!-- Bölüm tamamlandı ekranı -->
+  <section class="screen complete-screen" id="completeScreen" hidden>
+    <div class="confetti-layer" id="confettiLayer"></div>
+    <div class="logo-badge">🎉</div>
+    <h1 class="game-title small">TEBRİKLER!</h1>
+    <p class="complete-sub" id="completeLevelName">Bölüm 1 Tamamlandı</p>
+    <p class="complete-sub2">Kahramanın maskesi düştü! 🎭➡️😄</p>
+    <p class="complete-gold" id="completeGoldEarned">+60 🪙</p>
+    <p class="complete-unlock" id="completeUnlockMsg" hidden>Yeni bölüm açıldı!</p>
+    <div class="menu-buttons">
+      <button class="btn btn-primary btn-lg" id="nextLevelBtn" hidden>SONRAKİ BÖLÜM</button>
+      <button class="btn btn-secondary btn-lg" id="replayBtn">TEKRAR OYNA</button>
+      <button class="btn btn-secondary" id="menuBtn">ANA MENÜ</button>
+    </div>
+  </section>
+</div>
 
   <script src="game.js"></script>
 </body>

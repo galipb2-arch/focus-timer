@@ -223,8 +223,8 @@ body {
 
 .menu-buttons-row .btn {
   flex: 1;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: 6px;
+  padding-right: 6px;
   font-size: 13px;
 }
 
@@ -234,7 +234,7 @@ body {
   display: flex;
 }
 
-/* Animated hint pointing at the shop button after an incomplete run */
+/* Animated hint pointing at the upgrades button after an incomplete run */
 .shop-hint {
   position: absolute;
   bottom: 100%;
@@ -247,6 +247,7 @@ body {
   margin-bottom: 4px;
   pointer-events: none;
   white-space: nowrap;
+  z-index: 2;
 }
 
 .shop-hint-arrow {
@@ -287,6 +288,7 @@ body {
   transition: transform 0.1s ease;
 }
 .btn:active { transform: scale(0.96); }
+.btn:focus-visible { outline: 3px solid #9be8ff; outline-offset: 2px; }
 
 .btn-lg {
   font-size: 20px;
@@ -409,7 +411,7 @@ body {
 
 .upgrade-name {
   font-weight: 700;
-  font-size: 18px;
+  font-size: 17px;
   flex: 1;
 }
 
@@ -419,8 +421,8 @@ body {
 }
 
 .upgrade-tier-dots .dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
 }
@@ -431,7 +433,7 @@ body {
 }
 
 .upgrade-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   margin: 0 0 10px;
   line-height: 1.4;
@@ -447,17 +449,17 @@ body {
 .upgrade-cost {
   font-family: 'Baloo 2', sans-serif;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 16px;
   color: var(--gold);
 }
 
 .upgrade-buy-btn {
   border: none;
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 10px;
   font-family: 'Baloo 2', sans-serif;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
   background: linear-gradient(180deg, #ffe28a, var(--gold-glow));
   color: #3a2400;
@@ -465,6 +467,7 @@ body {
 }
 
 .upgrade-buy-btn:active { transform: scale(0.95); }
+.upgrade-buy-btn:focus-visible { outline: 3px solid #9be8ff; outline-offset: 2px; }
 
 .upgrade-buy-btn:disabled {
   background: rgba(255, 255, 255, 0.1);
@@ -479,8 +482,9 @@ body {
   top: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   z-index: 4;
-  padding: 16px 18px 0;
+  padding: 16px 18px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -494,9 +498,13 @@ body {
 }
 
 .hud-level {
-  font-size: 12px;
+  font-size: 11px;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: var(--muted);
   background: rgba(0, 0, 0, 0.35);
   padding: 6px 12px;
@@ -525,23 +533,172 @@ body {
 
 .coin-dot { font-size: 15px; }
 
-.hud-exit-btn {
-  position: absolute;
-  top: 54px;
-  left: 18px;
+.hud-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hud-chips {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.chip-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.chip-col.right { align-items: flex-end; }
+
+.upgrade-chip {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 207, 63, 0.6);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.upgrade-chip.maxed { color: #ffe28a; border-color: #ffe28a; }
+
+/* Upgrades screen: scrolling list so many upgrades fit */
+.shop-screen {
+  justify-content: flex-start;
+  padding-top: 22px;
+  padding-bottom: 18px;
+  gap: 10px;
+}
+.shop-screen .upgrade-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  gap: 8px;
+  padding-right: 4px;
+}
+.shop-screen .upgrade-card { padding: 10px 12px; }
+.upgrade-card.locked { opacity: 0.55; }
+.howto-screen { justify-content: flex-start; overflow-y: auto; }
+
+.hud-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hud-shop-btn {
   pointer-events: auto;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 207, 63, 0.45);
   background: rgba(0, 0, 0, 0.45);
-  color: var(--ink);
+  color: var(--gold);
   font-family: 'Baloo 2', sans-serif;
   font-weight: 700;
   font-size: 15px;
-  padding: 7px 14px;
+  padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
 }
+.hud-shop-btn:active { transform: scale(0.95); }
+.hud-shop-btn:focus-visible { outline: 3px solid #9be8ff; outline-offset: 2px; }
 
-.hud-exit-btn:active { transform: scale(0.95); }
+.hud-quit-btn {
+  border-color: rgba(255, 120, 120, 0.5);
+  color: #ffb3b3;
+}
+
+.slime-warn {
+  align-self: flex-start;
+  background: rgba(40, 140, 60, 0.85);
+  color: #eaffe9;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* Slingshot meter */
+.sling-meter {
+  position: absolute;
+  left: 50%;
+  bottom: 190px;
+  transform: translateX(-50%);
+  width: 78%;
+  max-width: 290px;
+  z-index: 4;
+  pointer-events: none;
+  text-align: center;
+}
+.sling-meter-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  margin-bottom: 6px;
+}
+.sling-meter-bar {
+  position: relative;
+  display: flex;
+  height: 22px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.sling-seg { height: 100%; }
+.sling-red { width: 35%; background: #e5383b; }
+.sling-yellow { width: 35%; background: #ffd23f; }
+.sling-green { width: 30%; background: #3ddc84; }
+.sling-marker {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: 0;
+  width: 5px;
+  background: #fff;
+  box-shadow: 0 0 8px #fff, 0 0 2px #000;
+  transform: translateX(-50%);
+}
+.sling-meter-labels {
+  display: flex;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+.sling-meter-labels span:nth-child(1) { width: 35%; text-align: center; }
+.sling-meter-labels span:nth-child(2) { width: 35%; text-align: center; }
+.sling-meter-labels span:nth-child(3) { width: 30%; text-align: center; }
+.sling-meter-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+.sling-result {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40%;
+  z-index: 4;
+  pointer-events: none;
+  text-align: center;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
+}
+
+.screen.shop-overlay {
+  background: rgba(5, 22, 13, 0.88);
+}
 
 .height-track {
   align-self: flex-end;
@@ -623,6 +780,11 @@ body {
     transform: translateY(120vh) rotate(560deg);
     opacity: 0;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-badge { animation: none; }
+  .confetti-piece { animation-duration: 0.01ms !important; }
 }
 
 @media (max-height: 700px) {

@@ -15,14 +15,11 @@
   const BOOST_STEP = 0.5;      // added per boost upgrade tier
   const MAX_BOOSTS_PER_CYCLE = 5;
   const BOOST_COOLDOWN_MS = 100;
-  const MAX_TIER = 5;
+  const MAX_TIER = 8;
 
   const CAMERA_FOLLOW_Y = 300; // once char rises above this, camera scrolls with it
 
-  const WEB_ASSIST_BOOST = -16;   // one-time extra lift on the first bounce of a web-assist level
-  const WEB_ASSIST_DURATION = 650; // ms the web-swing visual stays on screen
-
-  const UPGRADE_COSTS = [40, 90, 160, 260, 400]; // gold cost tier i -> i+1
+  const UPGRADE_COSTS = [40, 90, 160, 260, 400, 600, 850, 1150]; // gold cost tier i -> i+1
   const GOLD_PER_COIN = 15;
   const LEVEL_FIRST_CLEAR_BONUS = 60;
   const SAVE_KEY = 'trampolineHero.v2';
@@ -62,16 +59,49 @@
       trunk: '#8a6a3a',
       accent: '#ff9b4a',
     },
+    party: {
+      skyTop: [58, 28, 104], skyTopHigh: [255, 190, 226],
+      skyBot: [112, 58, 148], skyBotHigh: [255, 228, 242],
+      groundNear: '#3d2260', groundFar: '#8d5fc4',
+      groundSpeckle: 'rgba(30,10,60,0.22)',
+      sunColor: '#fff0f8', sunGlow: 'rgba(255, 190, 235, 0.38)',
+      decor: 'trees',
+      foliage: ['#3a2a6e', '#58409a', '#7a5cc0'],
+      trunk: '#5a3a6a',
+      accent: '#ff6fae',
+    },
+    ocean: {
+      skyTop: [30, 18, 74], skyTopHigh: [112, 72, 152],
+      skyBot: [255, 112, 64], skyBotHigh: [255, 160, 112],
+      groundNear: '#7a4a2a', groundFar: '#e9b47a',
+      groundSpeckle: 'rgba(90,50,20,0.22)',
+      sunColor: '#ffe0a8', sunGlow: 'rgba(255, 150, 80, 0.5)',
+      decor: 'ocean',
+      foliage: ['#3a2a6e', '#58409a', '#7a5cc0'],
+      trunk: '#5a3a6a',
+      accent: '#ff7a45',
+    },
+    lagoon: {
+      skyTop: [22, 118, 196], skyTopHigh: [140, 212, 255],
+      skyBot: [126, 214, 232], skyBotHigh: [214, 246, 255],
+      groundNear: '#c9a96a', groundFar: '#f3dfa6',
+      groundSpeckle: 'rgba(150,110,50,0.22)',
+      sunColor: '#fffbe0', sunGlow: 'rgba(255, 250, 200, 0.45)',
+      decor: 'lagoon',
+      foliage: ['#2f7d4a', '#3f9b4a', '#58b85a'],
+      trunk: '#7a5230',
+      accent: '#18c8c0',
+    },
     city: {
-      skyTop: [8, 8, 28], skyTopHigh: [110, 150, 210],
-      skyBot: [32, 18, 50], skyBotHigh: [205, 185, 215],
-      groundNear: '#17171f', groundFar: '#33333f',
-      groundSpeckle: 'rgba(255,255,255,0.08)',
-      sunColor: '#eef1ff', sunGlow: 'rgba(200, 210, 255, 0.28)',
-      decor: 'buildings',
-      foliage: ['#1d1f2b', '#262a3a', '#33384d'],
-      trunk: '#111118',
-      accent: '#ff3b3b',
+      skyTop: [16, 18, 60], skyTopHigh: [64, 104, 186],
+      skyBot: [150, 74, 116], skyBotHigh: [244, 176, 150],
+      groundNear: '#1d1d28', groundFar: '#3b3b4d',
+      groundSpeckle: 'rgba(255,255,255,0.06)',
+      sunColor: '#eef3ff', sunGlow: 'rgba(190, 210, 255, 0.35)',
+      decor: 'city',
+      foliage: ['#2b2f66', '#1d2150', '#12143a'],
+      trunk: '#333',
+      accent: '#ffb347',
     },
   };
 
@@ -80,13 +110,59 @@
     { id: 0, name: 'Bölüm 1 · Yeşil Orman', icon: '🌲', theme: 'forest', coinHeights: [180, 270, 350, 440, 530, 620] },
     { id: 1, name: 'Bölüm 2 · Kar Dağı', icon: '🏔️', theme: 'snow', coinHeights: [200, 300, 410, 520, 640, 780] },
     { id: 2, name: 'Bölüm 3 · Çöl Vahası', icon: '🏜️', theme: 'desert', coinHeights: [240, 370, 500, 650, 820, 1050] },
-    { id: 3, name: 'Bölüm 4 · Örümcek Şehri', icon: '🕸️', theme: 'city', coinHeights: [280, 430, 580, 750, 950, 1200], webAssist: true },
+    { id: 3, name: 'Bölüm 4 · Balon Şenliği', icon: '🎈', theme: 'party', coinHeights: [320, 520, 720, 920, 1100, 1300], balloons: 54 },
+    { id: 4, name: 'Bölüm 5 · Slime Körfezi', icon: '🌅', theme: 'ocean', coinHeights: [300, 550, 800, 1050, 1280, 1500], slimes: 16 },
+    // A floating slingshot waits 560 up; a good launch from it carries the hero to the top coin.
+    { id: 5, name: 'Bölüm 6 · Turkuaz Ada', icon: '🏝️', theme: 'lagoon', coinHeights: [260, 440, 860, 1150, 1450, 1900], slingshot: 560 },
+    // A helicopter hovers 600 up; boarding it carries the hero through cloud banks to the top coin.
+    { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260, 440, 1200, 1800, 2400, 3000], helicopter: 600 },
+    // A web-slinger swings in 650 up and carries the hero skyward on a web line.
+    { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 500, 1400, 2300, 3200, 4000], webswing: 650 },
   ];
 
+  const HELI_BASE = 6;
+  const HELI_BASE_STEP = 0.7;
+  const HELI_MAX = 15;
+  const HELI_BURST_ADD = 3.2;
+  const HELI_BURST_MAX = 8;
+
+  // Bölüm 8's web-slinger rescue: boards like the helicopter (auto-climb,
+  // tap for bursts) but the hero swings beside a web line instead of flying.
+  const WEB_BASE = 7;
+  const WEB_BASE_STEP = 0.8;
+  const WEB_MAX = 17;
+  const WEB_BURST_ADD = 3.5;
+  const WEB_BURST_MAX = 9;
+  const WEB_SWING_SPEED = 0.045;
+  const WEB_SWING_AMP = 70;
+
+  // Slingshot launch meter: tension 0..1 → red below SLING_RED_MAX, green from SLING_GREEN_MIN.
+  const SLING_RED_MAX = 0.35;
+  const SLING_GREEN_MIN = 0.70;
+  const SLING_V_MIN = 16;
+  const SLING_V_RANGE = 30;
+  const SLING_PULL = 70;
+
+  const SLIME_R = 20;
+
+  const BALLOON_COLORS = ['#ff5d73', '#ffb400', '#4cd964', '#4aa8ff', '#c06bff', '#ff8a3d', '#27d3c3', '#ff6fae'];
+  const BALLOON_R = 22;
+  const BALLOON_SLOWDOWN = 0.975; // hero speed kept after pushing a balloon aside
+
+  // minLevel: first level index (unlockedLevel) at which the upgrade is introduced.
   const UPGRADE_DEFS = [
-    { key: 'spring', icon: '🌀', name: 'Yay Gücü', unit: 'tier', descFor: t => `Trambolinin otomatik zıplama gücü +${(t * SPRING_STEP).toFixed(1)}` },
-    { key: 'boost', icon: '🚀', name: 'Uçuş Takviyesi', unit: 'tier', descFor: t => `Havada dokunuş başına ekstra yükseklik +${(t * BOOST_STEP).toFixed(1)}` },
+    { key: 'spring', icon: '🌀', name: 'Yay Gücü', minLevel: 0, descFor: t => `Zıplama gücü +${(t * SPRING_STEP).toFixed(1)}` },
+    { key: 'boost', icon: '🚀', name: 'Uçuş Takviyesi', minLevel: 0, descFor: t => `Dokunuş başına yükseklik +${(t * BOOST_STEP).toFixed(1)}` },
+    { key: 'magnet', icon: '🧲', name: 'Altın Mıknatısı', minLevel: 1, descFor: t => `Altın toplama menzili +${t * 7}` },
+    { key: 'gold', icon: '🪙', name: 'Altın Çarpanı', minLevel: 1, descFor: t => `Her altın %${100 + t * 20} değerinde` },
+    { key: 'armor', icon: '🛡️', name: 'Zırh', minLevel: 3, descFor: t => `Balon ve slime direnci +%${t * 10}` },
+    { key: 'aim', icon: '🎯', name: 'Usta Nişancı', minLevel: 5, descFor: t => `Mancınıkta yeşil bölge %${Math.round(100 - 70 * Math.max(0.6, 1 - t * 0.05))}` },
+    { key: 'rotor', icon: '🚁', name: 'Pervane Gücü', minLevel: 6, descFor: t => `Helikopter hızı +${(t * 0.7).toFixed(1)}, bulutlar daha az yavaşlatır` },
+    { key: 'web', icon: '🕸️', name: 'Ağ Gücü', minLevel: 7, descFor: t => `Ağ sallanma hızı +${(t * WEB_BASE_STEP).toFixed(1)}` },
   ];
+
+  // Higher tiers open up as later levels are unlocked: 2 tiers at the start, +1 per level.
+  function tierCap() { return Math.min(MAX_TIER, 2 + save.unlockedLevel); }
 
   // ---------- DOM ----------
   const canvas = document.getElementById('game');
@@ -101,12 +177,22 @@
     complete: document.getElementById('completeScreen'),
   };
   const hud = document.getElementById('hud');
+  const hudShopBtn = document.getElementById('hudShopBtn');
+  const slimeWarn = document.getElementById('slimeWarn');
+  const hudRestartBtn = document.getElementById('hudRestartBtn');
+  const hudQuitBtn = document.getElementById('hudQuitBtn');
+  const shopHint = document.getElementById('shopHint');
+  const slingMeter = document.getElementById('slingMeter');
+  const slingMarker = document.getElementById('slingMarker');
+  const slingResult = document.getElementById('slingResult');
+  const chipsLeft = document.getElementById('chipsLeft');
+  const chipsRight = document.getElementById('chipsRight');
+  const shopBackBtn = document.getElementById('shopBackBtn');
   const loadingFill = document.getElementById('loadingFill');
   const loadingLabel = document.getElementById('loadingLabel');
 
   const menuGoldAmount = document.getElementById('menuGoldAmount');
   const levelList = document.getElementById('levelList');
-  const shopHint = document.getElementById('shopHint');
 
   const shopGoldAmount = document.getElementById('shopGoldAmount');
   const upgradeList = document.getElementById('upgradeList');
@@ -116,7 +202,6 @@
   const coinTotalEl = document.getElementById('coinTotal');
   const hudGoldAmount = document.getElementById('hudGoldAmount');
   const heightFill = document.getElementById('heightFill');
-  const hudExitBtn = document.getElementById('hudExitBtn');
 
   const completeLevelName = document.getElementById('completeLevelName');
   const completeGoldEarned = document.getElementById('completeGoldEarned');
@@ -146,16 +231,15 @@
       const raw = localStorage.getItem(SAVE_KEY);
       if (raw) s = JSON.parse(raw);
     } catch {}
-    const base = { gold: 0, unlockedLevel: 0, completedLevels: LEVELS.map(() => false), upgrades: { spring: 0, boost: 0 } };
+    const upgrades = {};
+    UPGRADE_DEFS.forEach(d => { upgrades[d.key] = clampTier(s && s.upgrades && s.upgrades[d.key]); });
+    const base = { gold: 0, unlockedLevel: 0, completedLevels: LEVELS.map(() => false), upgrades };
     if (!s) return base;
     return {
       gold: typeof s.gold === 'number' ? s.gold : 0,
-      unlockedLevel: typeof s.unlockedLevel === 'number' ? s.unlockedLevel : 0,
+      unlockedLevel: typeof s.unlockedLevel === 'number' ? Math.min(s.unlockedLevel, LEVELS.length - 1) : 0,
       completedLevels: LEVELS.map((_, i) => !!(s.completedLevels && s.completedLevels[i])),
-      upgrades: {
-        spring: clampTier(s.upgrades && s.upgrades.spring),
-        boost: clampTier(s.upgrades && s.upgrades.boost),
-      },
+      upgrades,
     };
   }
   function clampTier(v) {
@@ -229,6 +313,24 @@
     });
   }
 
+  function playBalloonBump() {
+    const a = audio();
+    if (!a) return;
+    tone(a, 320, a.currentTime, 0.09, { type: 'sine', gain: 0.06, glideTo: 460 });
+  }
+
+  function playPop() {
+    const a = audio();
+    if (!a) return;
+    tone(a, 700, a.currentTime, 0.1, { type: 'triangle', gain: 0.09, glideTo: 180 });
+  }
+
+  function playFling() {
+    const a = audio();
+    if (!a) return;
+    tone(a, 200, a.currentTime, 0.28, { type: 'sawtooth', gain: 0.07, glideTo: 900 });
+  }
+
   function playPurchase() {
     const a = audio();
     if (!a) return;
@@ -236,15 +338,8 @@
     [660, 990].forEach((freq, i) => tone(a, freq, t + i * 0.07, 0.18, { type: 'square', gain: 0.07 }));
   }
 
-  // Web-shooter "thwip" — a fast descending blip
-  function playWebThwip() {
-    const a = audio();
-    if (!a) return;
-    tone(a, 1500, a.currentTime, 0.14, { type: 'square', gain: 0.09, glideTo: 280 });
-  }
-
   // ---------- Game state ----------
-  const STATE = { LOADING: 'loading', MENU: 'menu', HOWTO: 'howto', SHOP: 'shop', PLAYING: 'playing', COMPLETE: 'complete' };
+  const STATE = { LOADING: 'loading', MENU: 'menu', HOWTO: 'howto', SHOP: 'shop', PAUSED: 'paused', PLAYING: 'playing', SLING: 'sling', HELI: 'heli', WEB: 'web', COMPLETE: 'complete' };
   let state = STATE.LOADING;
   let currentLevelIndex = 0;
 
@@ -259,15 +354,22 @@
   };
 
   let coins = [];
+  let balloons = [];
+  let slimes = [];
+  let sling = null;               // { worldY, ready, tension, dir, holding } on slingshot levels
+  let resumeState = 'playing';    // state to return to after the in-game upgrades panel
+  let slingResultTimer = null;
+  let runGold = 0;                // gold earned from coins in the current run
+  let heli = null;                // { worldY, boarded, speed, burst, clouds } on helicopter levels
+  let web = null;                 // { worldY, boarded, speed, burst, swingPhase, side } on web-swing levels
+  let showShopHint = false;       // nudges the player toward Yükseltmeler after an unfinished run
+  let shopReturn = 'menu'; // where the upgrades screen returns to: 'menu' | 'game'
   let particles = [];
   let clouds = [];
   let cameraOffset = 0;
   let maxHeightReached = 0;
   let collectedCount = 0;
   let lastTime = 0;
-  let bounceCountThisLevel = 0;
-  let showShopHint = false;
-  const webAssist = { active: false, used: false, startTime: 0, heroSide: 1 };
 
   function currentLevel() { return LEVELS[currentLevelIndex]; }
   function currentTheme() { return THEMES[currentLevel().theme]; }
@@ -296,6 +398,19 @@
     player.maskOff = 0;
     coins = level.coinHeights.map(h => ({ worldY: TRAMPOLINE_Y - h, collected: false, wobble: Math.random() * Math.PI * 2 }));
     particles = [];
+    balloons = makeBalloons(level);
+    slimes = makeSlimes(level);
+    slimeWarn.hidden = true;
+    sling = level.slingshot
+      ? { worldY: TRAMPOLINE_Y - level.slingshot, ready: true, tension: 0, dir: 1, holding: false }
+      : null;
+    slingMeter.hidden = true;
+    slingResult.hidden = true;
+    clearTimeout(slingResultTimer);
+    heli = level.helicopter ? makeHeli(level) : null;
+    web = level.webswing ? makeWeb(level) : null;
+    runGold = 0;
+    renderUpgradeChips();
     cameraOffset = 0;
     maxHeightReached = 0;
     collectedCount = 0;
@@ -304,10 +419,108 @@
     hudLevel.textContent = level.name;
     hudGoldAmount.textContent = String(save.gold);
     heightFill.style.height = '0%';
-    bounceCountThisLevel = 0;
-    webAssist.active = false;
-    webAssist.used = false;
-    webAssist.heroSide = Math.random() < 0.5 ? 1 : -1;
+  }
+
+  // Dozens of balloons drift across the climb; the hero shoves them aside
+  // on the way up and they slowly float back toward their home spots.
+  function makeBalloons(level) {
+    if (!level.balloons) return [];
+    const top = level.coinHeights[level.coinHeights.length - 1];
+    const minY = TRAMPOLINE_Y - 220;
+    const maxY = TRAMPOLINE_Y - top - 140;
+    return Array.from({ length: level.balloons }, (_, i) => {
+      const homeX = 30 + Math.random() * (CANVAS_W - 60);
+      return {
+        x: homeX,
+        homeX,
+        y: minY + (maxY - minY) * ((i + Math.random() * 0.8) / level.balloons),
+        vx: 0,
+        phase: Math.random() * Math.PI * 2,
+        bobPhase: Math.random() * Math.PI * 2,
+        swayAmp: 10 + Math.random() * 18,
+        color: BALLOON_COLORS[i % BALLOON_COLORS.length],
+        side: Math.random() < 0.5 ? -1 : 1,
+        touching: false,
+      };
+    });
+  }
+
+  // Slimes chase the hero, stick to it and weigh it down. Taps shake them
+  // off (Flight Boost tier = more per tap); Spring tier lightens the load.
+  function makeSlimes(level) {
+    if (!level.slimes) return [];
+    const top = level.coinHeights[level.coinHeights.length - 1];
+    const minY = TRAMPOLINE_Y - 260;
+    const maxY = TRAMPOLINE_Y - top - 80;
+    return Array.from({ length: level.slimes }, (_, i) => ({
+      x: 40 + Math.random() * (CANVAS_W - 80),
+      y: minY + (maxY - minY) * ((i + Math.random() * 0.7) / level.slimes),
+      vx: 0,
+      phase: Math.random() * Math.PI * 2,
+      wob: Math.random() * Math.PI * 2,
+      stuck: false,
+      offX: 0,
+      offY: 0,
+      cooldown: 0,
+    }));
+  }
+
+  function slimeDrag() { return Math.max(0.02, 0.14 - save.upgrades.spring * 0.012 - save.upgrades.armor * 0.01); }
+
+  function updateSlimes(dt) {
+    if (!slimes.length) return;
+    const heroY = player.y - 6;
+    let stuckCount = 0;
+    slimes.forEach(s => {
+      s.wob += 0.12 * dt;
+      if (s.stuck) { stuckCount++; return; }
+      if (s.cooldown > 0) s.cooldown -= dt;
+      s.phase += 0.02 * dt;
+      const dy = s.y - heroY;
+      if (Math.abs(dy) < 320 && s.cooldown <= 0) {
+        s.vx += Math.sign(CENTER_X - s.x) * 0.05 * dt;
+      } else {
+        s.vx += Math.sin(s.phase) * 0.02 * dt;
+      }
+      s.vx *= Math.pow(0.99, dt);
+      if (s.cooldown <= 0) s.vx = Math.max(-2.6, Math.min(2.6, s.vx));
+      s.x += s.vx * dt;
+      s.y += Math.sin(s.phase * 1.7) * 0.35 * dt;
+      if (s.x < SLIME_R) { s.x = SLIME_R; s.vx = Math.abs(s.vx); }
+      if (s.x > CANVAS_W - SLIME_R) { s.x = CANVAS_W - SLIME_R; s.vx = -Math.abs(s.vx); }
+
+      if (s.cooldown <= 0 && Math.hypot(s.x - CENTER_X, dy) < 24 + SLIME_R) {
+        s.stuck = true;
+        s.offX = (Math.random() - 0.5) * 40;
+        s.offY = (Math.random() - 0.5) * 44;
+        player.vy *= Math.min(1, 0.92 + save.upgrades.armor * 0.008);
+        stuckCount++;
+        spawnParticles(CENTER_X + s.offX, s.y + cameraOffset, 6, '#6cf27a');
+      }
+    });
+
+    if (stuckCount > 0) player.vy += slimeDrag() * stuckCount * dt;
+    slimeWarn.hidden = stuckCount === 0;
+    if (stuckCount > 0) slimeWarn.textContent = `🟢 Slime x${stuckCount} yapıştı — dokunarak silkele!`;
+  }
+
+  function shakeSlimes(amount) {
+    let n = amount;
+    const heroY = player.y - 6;
+    let popped = 0;
+    slimes.forEach(s => {
+      if (n <= 0 || !s.stuck) return;
+      // a shaken-off slime bursts for good instead of piling up near the trampoline
+      s.popped = true;
+      n--;
+      popped++;
+      spawnParticles(CENTER_X + s.offX, heroY + s.offY + cameraOffset, 16, '#6cf27a');
+      spawnParticles(CENTER_X + s.offX, heroY + s.offY + cameraOffset, 6, '#d6ffd0');
+    });
+    if (popped) {
+      slimes = slimes.filter(s => !s.popped);
+      playPop();
+    }
   }
 
   function getNextLevelIndex() {
@@ -321,24 +534,25 @@
     audio();
     resetLevel(index);
     state = STATE.PLAYING;
+    screens.shop.classList.remove('shop-overlay');
     showScreen(null);
     hud.hidden = false;
   }
 
   // Quit the current attempt without finishing it. If the level wasn't
-  // completed, surface the upgrade hint next time the menu is shown.
+  // completed, the main menu nudges the player toward Yükseltmeler next time.
   function endLevelEarly() {
-    if (state !== STATE.PLAYING) return;
-    const level = currentLevel();
-    if (collectedCount < level.coinHeights.length) {
+    if (state !== STATE.PLAYING && state !== STATE.SLING && state !== STATE.HELI && state !== STATE.WEB) return;
+    if (collectedCount < currentLevel().coinHeights.length) {
       showShopHint = true;
     }
+    clearTimeout(slingResultTimer);
     state = STATE.MENU;
     hud.hidden = true;
     renderMenu();
     showScreen('menu');
   }
-  hudExitBtn.addEventListener('click', endLevelEarly);
+  hudQuitBtn.addEventListener('click', endLevelEarly);
 
   // ---------- Input ----------
   function handleTap() {
@@ -351,13 +565,37 @@
       player.lastBoostAt = now;
       playBoost();
       spawnParticles(CENTER_X, player.y + cameraOffset, 6, '#ffe28a');
+      shakeSlimes(1 + save.upgrades.boost);
     }
   }
 
   phoneFrame.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.screen') || e.target.closest('button')) return;
+    if (e.target.closest('.screen, .hud-shop-btn')) return;
+    if (state === STATE.HELI) {
+      audio();
+      heli.burst = Math.min(HELI_BURST_MAX, heli.burst + HELI_BURST_ADD);
+      spawnParticles(CENTER_X, player.y - 60 + cameraOffset, 4, '#ffffff');
+      playBoost();
+      return;
+    }
+    if (state === STATE.WEB) {
+      audio();
+      web.burst = Math.min(WEB_BURST_MAX, web.burst + WEB_BURST_ADD);
+      spawnParticles(CENTER_X, player.y - 60 + cameraOffset, 4, '#ffffff');
+      playBoost();
+      return;
+    }
+    if (state === STATE.SLING) {
+      audio();
+      sling.holding = true;
+      sling.dir = 1;
+      sling.tension = 0;
+      return;
+    }
     handleTap();
   });
+  window.addEventListener('pointerup', fireSling);
+  window.addEventListener('pointercancel', fireSling);
 
   // ---------- Particles ----------
   function spawnParticles(x, y, count, color) {
@@ -385,6 +623,7 @@
 
   // ---------- Physics ----------
   function updatePhysics(dt) {
+    const prevY = player.y;
     player.vy += GRAVITY * dt;
     player.y += player.vy * dt;
 
@@ -395,20 +634,27 @@
       player.vy = currentBaseBounce();
       player.boostCount = 0;
       player.squash = 1;
+      if (sling) sling.ready = true;
       playBoing();
       spawnParticles(CENTER_X, TRAMPOLINE_Y + cameraOffset - 6, 5, '#bfe8ff');
-      bounceCountThisLevel += 1;
+    }
 
-      // Bölüm 4: on the very first bounce, the web hero swings in and
-      // carries the player up with a one-time extra lift.
-      if (currentLevel().webAssist && bounceCountThisLevel === 1 && !webAssist.used) {
-        webAssist.used = true;
-        webAssist.active = true;
-        webAssist.startTime = performance.now();
-        player.vy += WEB_ASSIST_BOOST;
-        playWebThwip();
-        spawnParticles(CENTER_X, player.y + cameraOffset, 10, '#ffffff');
-      }
+    // rising through the helicopter's height boards it
+    if (heli && !heli.boarded && player.vy < 0 && prevY > heli.worldY && player.y <= heli.worldY) {
+      boardHeli();
+      return;
+    }
+
+    // rising through the web-swing height calls in the web hero's rescue
+    if (web && !web.boarded && player.vy < 0 && prevY > web.worldY && player.y <= web.worldY) {
+      boardWeb();
+      return;
+    }
+
+    // rising through the slingshot's height docks the hero in its pouch
+    if (sling && sling.ready && player.vy < 0 && prevY > sling.worldY && player.y <= sling.worldY) {
+      dockSling();
+      return;
     }
 
     cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
@@ -416,14 +662,31 @@
     const heightAboveTrampoline = Math.max(0, TRAMPOLINE_Y - player.y);
     if (heightAboveTrampoline > maxHeightReached) maxHeightReached = heightAboveTrampoline;
 
+    collectCoins();
+
+    updateBalloons(dt);
+    updateSlimes(dt);
+
+    const topGoal = currentLevel().coinHeights[currentLevel().coinHeights.length - 1];
+    const pct = Math.min(100, (maxHeightReached / topGoal) * 100);
+    heightFill.style.height = `${pct}%`;
+
+    updateParticles(dt);
+    updateClouds(dt);
+  }
+
+  // ---------- Coins ----------
+  function collectCoins() {
+    const reach = CHAR_RADIUS + 16 + save.upgrades.magnet * 7;
+    const coinGold = Math.round(GOLD_PER_COIN * (1 + 0.2 * save.upgrades.gold));
     coins.forEach(coin => {
       if (coin.collected) return;
-      const d = Math.abs(coin.worldY - player.y);
-      if (d < CHAR_RADIUS + 16) {
+      if (Math.abs(coin.worldY - player.y) < reach) {
         coin.collected = true;
         collectedCount += 1;
         coinCountEl.textContent = String(collectedCount);
-        save.gold += GOLD_PER_COIN;
+        save.gold += coinGold;
+        runGold += coinGold;
         hudGoldAmount.textContent = String(save.gold);
         persist();
         playGoldChime();
@@ -433,13 +696,248 @@
         }
       }
     });
+  }
+
+  // ---------- Helicopter ----------
+  // The hero boards a hovering helicopter and flies to the summit on its own;
+  // the rotor tears through cloud banks, each one slowing the climb a little.
+  function makeHeli(level) {
+    const worldY = TRAMPOLINE_Y - level.helicopter;
+    const top = TRAMPOLINE_Y - level.coinHeights[level.coinHeights.length - 1];
+    const count = 16;
+    const clouds = Array.from({ length: count }, (_, i) => {
+      const w = 150 + Math.random() * 80;
+      const n = 7;
+      const puffs = Array.from({ length: n }, (_, k) => {
+        const dx = -w / 2 + (k + 0.5) * (w / n);
+        return { dx, dy: (Math.random() - 0.5) * 10, r: (24 + Math.random() * 14) * (1 - Math.abs(dx) / w * 0.5) };
+      });
+      return {
+        x: CENTER_X + (Math.random() - 0.5) * (i % 3 === 2 ? 260 : 90),
+        y: worldY - 280 + (top - 40 - (worldY - 280)) * ((i + Math.random() * 0.7) / count),
+        w, puffs, split: false, offL: 0, offR: 0, vL: 0, vR: 0,
+      };
+    });
+    return { worldY, boarded: false, speed: 0, burst: 0, clouds };
+  }
+
+  function boardHeli() {
+    heli.boarded = true;
+    state = STATE.HELI;
+    player.y = heli.worldY;
+    player.vy = -2;
+    player.squash = 0;
+    player.boostCount = 0;
+    heli.speed = 2;
+    heli.burst = 0;
+    cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
+    slingResult.textContent = 'Helikopter! Dokunarak hızlan 🚁';
+    slingResult.style.color = '#9be8ff';
+    slingResult.hidden = false;
+    clearTimeout(slingResultTimer);
+    slingResultTimer = setTimeout(() => { slingResult.hidden = true; }, 2200);
+    spawnParticles(CENTER_X, player.y + cameraOffset, 16, '#9be8ff');
+    playFling();
+  }
+
+  function updateHeli(dt) {
+    const base = Math.min(HELI_MAX, HELI_BASE + save.upgrades.rotor * HELI_BASE_STEP);
+    heli.burst *= Math.pow(0.97, dt);
+    const target = Math.min(HELI_MAX, base + heli.burst);
+    heli.speed += (target - heli.speed) * Math.min(1, 0.06 * dt);
+    player.y -= heli.speed * dt;
+    player.vy = -heli.speed;
+    cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
+
+    const heightAboveTrampoline = Math.max(0, TRAMPOLINE_Y - player.y);
+    if (heightAboveTrampoline > maxHeightReached) maxHeightReached = heightAboveTrampoline;
+
+    const rotorY = player.y - 60;
+    const slow = Math.min(0.98, 0.86 + save.upgrades.rotor * 0.012);
+    heli.clouds.forEach(c => {
+      if (!c.split && Math.abs(c.y - rotorY) < 34 && Math.abs(c.x - CENTER_X) < c.w / 2 + 20) {
+        c.split = true;
+        c.vL = -7;
+        c.vR = 7;
+        heli.speed = Math.max(2.5, heli.speed * slow);
+        spawnParticles(CENTER_X, rotorY + cameraOffset, 12, '#ffffff');
+        playBalloonBump();
+      }
+      if (c.split) {
+        c.offL += c.vL * dt;
+        c.offR += c.vR * dt;
+        c.vL *= Math.pow(0.95, dt);
+        c.vR *= Math.pow(0.95, dt);
+      }
+    });
+
+    collectCoins();
 
     const topGoal = currentLevel().coinHeights[currentLevel().coinHeights.length - 1];
-    const pct = Math.min(100, (maxHeightReached / topGoal) * 100);
-    heightFill.style.height = `${pct}%`;
-
+    heightFill.style.height = `${Math.min(100, (maxHeightReached / topGoal) * 100)}%`;
     updateParticles(dt);
     updateClouds(dt);
+  }
+
+  // ---------- Web-swing (Bölüm 8) ----------
+  // An original web-slinging hero boards the hero at a fixed height and
+  // carries them straight up, tap-bursting for extra speed like the
+  // helicopter — but the hero himself swings in a pendulum arc alongside.
+  function makeWeb(level) {
+    const worldY = TRAMPOLINE_Y - level.webswing;
+    return { worldY, boarded: false, speed: 0, burst: 0, swingPhase: 0, side: Math.random() < 0.5 ? 1 : -1 };
+  }
+
+  function boardWeb() {
+    web.boarded = true;
+    state = STATE.WEB;
+    player.y = web.worldY;
+    player.vy = -2;
+    player.squash = 0;
+    player.boostCount = 0;
+    web.speed = 2;
+    web.burst = 0;
+    web.swingPhase = 0;
+    cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
+    slingResult.textContent = 'Ağ atıldı! Dokunarak hızlan 🕸️';
+    slingResult.style.color = '#ff8a7a';
+    slingResult.hidden = false;
+    clearTimeout(slingResultTimer);
+    slingResultTimer = setTimeout(() => { slingResult.hidden = true; }, 2200);
+    spawnParticles(CENTER_X, player.y + cameraOffset, 16, '#ffffff');
+    playFling();
+  }
+
+  function updateWeb(dt) {
+    const base = Math.min(WEB_MAX, WEB_BASE + save.upgrades.web * WEB_BASE_STEP);
+    web.burst *= Math.pow(0.97, dt);
+    const target = Math.min(WEB_MAX, base + web.burst);
+    web.speed += (target - web.speed) * Math.min(1, 0.06 * dt);
+    player.y -= web.speed * dt;
+    player.vy = -web.speed;
+    web.swingPhase += WEB_SWING_SPEED * dt;
+    cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
+
+    const heightAboveTrampoline = Math.max(0, TRAMPOLINE_Y - player.y);
+    if (heightAboveTrampoline > maxHeightReached) maxHeightReached = heightAboveTrampoline;
+
+    collectCoins();
+
+    const topGoal = currentLevel().coinHeights[currentLevel().coinHeights.length - 1];
+    heightFill.style.height = `${Math.min(100, (maxHeightReached / topGoal) * 100)}%`;
+    updateParticles(dt);
+    updateClouds(dt);
+  }
+
+  // ---------- Slingshot ----------
+  // Aim upgrade shrinks the red/yellow zones, so green starts earlier and covers more of the meter.
+  function slingZoneScale() { return Math.max(0.6, 1 - save.upgrades.aim * 0.05); }
+
+  function applySlingZones() {
+    const f = slingZoneScale();
+    const red = SLING_RED_MAX * f * 100;
+    const yellow = (SLING_GREEN_MIN - SLING_RED_MAX) * f * 100;
+    const green = 100 - red - yellow;
+    const widths = [red, yellow, green];
+    slingMeter.querySelectorAll('.sling-seg').forEach((el, i) => { el.style.width = `${widths[i]}%`; });
+    slingMeter.querySelectorAll('.sling-meter-labels span').forEach((el, i) => { el.style.width = `${widths[i]}%`; });
+  }
+
+  function dockSling() {
+    state = STATE.SLING;
+    sling.ready = false;
+    sling.tension = 0;
+    sling.dir = 1;
+    sling.holding = false;
+    player.y = sling.worldY + 10;
+    player.vy = 0;
+    player.boostCount = 0;
+    cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
+    slingMarker.style.left = '0%';
+    applySlingZones();
+    slingResult.hidden = true;
+    slingMeter.hidden = false;
+    playBoost();
+  }
+
+  function updateSling(dt) {
+    if (sling.holding) {
+      sling.tension += sling.dir * 0.014 * dt;
+      if (sling.tension >= 1) { sling.tension = 1; sling.dir = -1; }
+      if (sling.tension <= 0) { sling.tension = 0; sling.dir = 1; }
+    }
+    player.y = sling.worldY + 10 + sling.tension * SLING_PULL;
+    player.squash = sling.tension * 0.7;
+    cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - (sling.worldY + 10));
+    slingMarker.style.left = `${sling.tension * 100}%`;
+    updateParticles(dt);
+    updateClouds(dt);
+  }
+
+  function fireSling() {
+    if (state !== STATE.SLING || !sling.holding) return;
+    sling.holding = false;
+    const t = sling.tension;
+    player.y = sling.worldY + 10;
+    // the aim upgrade squeezes the zones toward 0, so a lighter pull already counts as full power
+    player.vy = -(SLING_V_MIN + SLING_V_RANGE * Math.min(1, t / slingZoneScale()));
+    player.squash = 0;
+    player.boostCount = 0;
+    sling.tension = 0;
+    state = STATE.PLAYING;
+    slingMeter.hidden = true;
+
+    let label = 'Yetersiz gerilme!';
+    let color = '#ff6b6e';
+    if (t >= SLING_GREEN_MIN * slingZoneScale()) { label = 'Mükemmel fırlatma! 🎯'; color = '#3ddc84'; }
+    else if (t >= SLING_RED_MAX * slingZoneScale()) { label = 'Orta güç'; color = '#ffd23f'; }
+    slingResult.textContent = label;
+    slingResult.style.color = color;
+    slingResult.hidden = false;
+    clearTimeout(slingResultTimer);
+    slingResultTimer = setTimeout(() => { slingResult.hidden = true; }, 1400);
+
+    spawnParticles(CENTER_X, player.y + cameraOffset, 14, color);
+    playFling();
+  }
+
+  let lastBalloonSoundAt = 0;
+  function updateBalloons(dt) {
+    if (!balloons.length) return;
+    const heroY = player.y - 6;
+    const minDist = 24 + BALLOON_R;
+    balloons.forEach(b => {
+      b.phase += 0.02 * dt;
+      b.bobPhase += 0.015 * dt;
+      // float: sway around the home spot, spring back after being shoved
+      const target = b.homeX + Math.sin(b.phase) * b.swayAmp;
+      b.vx += (target - b.x) * 0.006 * dt;
+      b.vx *= Math.pow(0.97, dt);
+      b.x += b.vx * dt;
+      b.y += Math.sin(b.bobPhase) * 0.25 * dt;
+      if (b.x < BALLOON_R) { b.x = BALLOON_R; b.vx = Math.abs(b.vx) * 0.6; }
+      if (b.x > CANVAS_W - BALLOON_R) { b.x = CANVAS_W - BALLOON_R; b.vx = -Math.abs(b.vx) * 0.6; }
+
+      const dx = b.x - CENTER_X;
+      const dy = b.y - heroY;
+      const dist = Math.hypot(dx, dy);
+      if (dist < minDist) {
+        const dir = Math.abs(dx) < 4 ? b.side : Math.sign(dx);
+        // shove it out of the hero's path, harder the faster the hero moves
+        const clearX = Math.sqrt(Math.max(0, minDist * minDist - dy * dy));
+        b.x = Math.max(BALLOON_R, Math.min(CANVAS_W - BALLOON_R, CENTER_X + dir * Math.max(Math.abs(dx), clearX)));
+        b.vx = dir * (3.5 + Math.abs(player.vy) * 0.3);
+        if (!b.touching) {
+          b.touching = true;
+          player.vy *= Math.min(0.999, BALLOON_SLOWDOWN + save.upgrades.armor * 0.003);
+          spawnParticles(b.x, b.y + cameraOffset, 4, b.color);
+          const now = performance.now();
+          if (now - lastBalloonSoundAt > 60) { lastBalloonSoundAt = now; playBalloonBump(); }
+        }
+      } else if (dist > minDist + 8) {
+        b.touching = false;
+      }
+    });
   }
 
   function updateClouds(dt) {
@@ -454,7 +952,6 @@
     playFanfare();
 
     const level = currentLevel();
-    const runGold = collectedCount * GOLD_PER_COIN;
     let bonus = 0;
     let unlockedNext = false;
     if (!save.completedLevels[level.id]) {
@@ -534,6 +1031,26 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+    if (theme.decor === 'city') {
+      drawSun(theme, climb);
+      drawClouds(climb);
+      drawCity();
+      return;
+    }
+
+    if (theme.decor === 'lagoon') {
+      drawSun(theme, climb);
+      drawClouds(climb);
+      drawLagoon();
+      return;
+    }
+
+    if (theme.decor === 'ocean') {
+      drawSunsetOcean(theme);
+      drawClouds(climb);
+      return;
+    }
+
     drawSun(theme, climb);
     drawClouds(climb);
 
@@ -546,6 +1063,60 @@
     drawDecorLayer(theme, 0.6, 120, theme.foliage[1], 2, 0.8);
     drawDecorLayer(theme, 1.0, 95, theme.foliage[2], 3, 1.0);
     ctx.restore();
+  }
+
+  // Sunset over the sea: the sun sits on the horizon and slips out of view
+  // as the hero climbs; the sea shimmers and rolls in gentle waves.
+  function drawSunsetOcean(theme) {
+    const horizon = 470 + cameraOffset * 0.3;
+    const sx = CANVAS_W * 0.5;
+    const t = performance.now() / 1000;
+    if (horizon > CANVAS_H + 120) return;
+
+    const glow = ctx.createRadialGradient(sx, horizon, 6, sx, horizon, 260);
+    glow.addColorStop(0, theme.sunGlow);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, Math.max(0, horizon - 260), CANVAS_W, 260);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, CANVAS_W, horizon);
+    ctx.clip();
+    ctx.fillStyle = theme.sunColor;
+    ctx.beginPath();
+    ctx.arc(sx, horizon - 4, 56, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (horizon >= CANVAS_H) return;
+    const sea = ctx.createLinearGradient(0, horizon, 0, CANVAS_H);
+    sea.addColorStop(0, '#e0663f');
+    sea.addColorStop(0.25, '#8a3560');
+    sea.addColorStop(1, '#1b1445');
+    ctx.fillStyle = sea;
+    ctx.fillRect(0, horizon, CANVAS_W, CANVAS_H - horizon);
+
+    // sun glitter on the water
+    for (let i = 0; i < 10; i++) {
+      const w = 110 - i * 8;
+      const y = horizon + 8 + i * 15;
+      ctx.fillStyle = `rgba(255, 215, 160, ${0.55 - i * 0.045})`;
+      ctx.fillRect(sx - w / 2 + Math.sin(t * 2 + i) * 7, y, w, 4);
+    }
+
+    // rolling wave lines
+    ctx.lineWidth = 1.6;
+    for (let band = 0; band < 7; band++) {
+      const y = horizon + 26 + band * 40;
+      ctx.strokeStyle = `rgba(255, 190, 150, ${0.10 + band * 0.02})`;
+      ctx.beginPath();
+      for (let x = 0; x <= CANVAS_W; x += 10) {
+        const yy = y + Math.sin(x * 0.03 + t * 1.2 + band * 1.7) * (2 + band * 0.5);
+        if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
   }
 
   function drawSun(theme, climb) {
@@ -602,7 +1173,6 @@
         if (theme.decor === 'trees') drawTree(tx, y, scale, color, theme.trunk, false);
         else if (theme.decor === 'snowtrees') drawTree(tx, y, scale, color, theme.trunk, true);
         else if (theme.decor === 'cacti') drawCactus(tx, y, scale, color, itemSeed);
-        else if (theme.decor === 'buildings') drawBuilding(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -690,48 +1260,6 @@
       ctx.moveTo(i, -38);
       ctx.lineTo(i, 34);
       ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-
-  function drawBuilding(x, y, scale, color, seed) {
-    if (y < -160 || y > CANVAS_H + 160) return;
-    const h = 70 + seededRand(seed) * 55;
-    const w = 34 + seededRand(seed + 2) * 14;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
-
-    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-    ctx.beginPath();
-    ctx.ellipse(0, 46, w * 0.65, 7, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    const bodyGrad = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
-    bodyGrad.addColorStop(0, lighten(color, 10));
-    bodyGrad.addColorStop(1, darken(color, 16));
-    ctx.fillStyle = bodyGrad;
-    ctx.fillRect(-w / 2, 46 - h, w, h);
-
-    // rooftop tank / antenna for silhouette variety
-    if (seededRand(seed + 4) > 0.5) {
-      ctx.fillStyle = darken(color, 20);
-      ctx.fillRect(-4, 46 - h - 14, 8, 14);
-    }
-
-    // lit windows in a grid, some randomly dark
-    const cols = Math.max(2, Math.floor(w / 9));
-    const rows = Math.max(3, Math.floor(h / 12));
-    for (let cy = 0; cy < rows; cy++) {
-      for (let cx = 0; cx < cols; cx++) {
-        const wSeed = seed + cy * 7.3 + cx * 3.1;
-        if (seededRand(wSeed) < 0.32) continue; // unlit window
-        const wx = -w / 2 + 5 + cx * (w - 10) / Math.max(1, cols - 1 || 1);
-        const wy = 46 - h + 8 + cy * (h - 16) / Math.max(1, rows - 1 || 1);
-        ctx.fillStyle = seededRand(wSeed + 1) > 0.15 ? 'rgba(255, 221, 140, 0.85)' : 'rgba(150, 210, 255, 0.7)';
-        ctx.fillRect(wx, wy, 3, 4);
-      }
     }
 
     ctx.restore();
@@ -1020,35 +1548,295 @@
     });
   }
 
-  function drawParticles() {
-    particles.forEach(p => {
+  function drawBalloons() {
+    balloons.forEach(b => {
+      const y = b.y + cameraOffset;
+      if (y < -60 || y > CANVAS_H + 60) return;
+      const sway = Math.sin(b.phase * 1.3) * 3;
       ctx.save();
-      ctx.globalAlpha = Math.max(0, p.life);
-      ctx.fillStyle = p.color;
+      ctx.translate(b.x, y);
+
+      // string
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.moveTo(0, BALLOON_R * 1.15);
+      ctx.quadraticCurveTo(sway * 2, BALLOON_R * 1.15 + 14, -sway, BALLOON_R * 1.15 + 30);
+      ctx.stroke();
+
+      // body
+      const grad = ctx.createRadialGradient(-7, -9, 3, 0, 0, BALLOON_R * 1.2);
+      grad.addColorStop(0, lighten(b.color, 70));
+      grad.addColorStop(0.45, b.color);
+      grad.addColorStop(1, darken(b.color, 45));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, BALLOON_R * 0.86, BALLOON_R, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // knot
+      ctx.fillStyle = darken(b.color, 45);
+      ctx.beginPath();
+      ctx.moveTo(0, BALLOON_R - 1);
+      ctx.lineTo(-4, BALLOON_R + 5);
+      ctx.lineTo(4, BALLOON_R + 5);
+      ctx.closePath();
+      ctx.fill();
+
+      // shine
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(-7, -9, 4, 6, -0.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     });
   }
 
-  // Bölüm 4's one-time "web hero" swing assist: an original web-slinging
-  // ally swoops in on the first bounce, grabs the player with a web line,
-  // and carries them up before swinging off-screen.
-  function drawWebAssist() {
-    const t = Math.min(1, (performance.now() - webAssist.startTime) / WEB_ASSIST_DURATION);
-    const side = webAssist.heroSide;
-    const startX = CENTER_X + side * -260;
-    const endX = CENTER_X + side * 260;
-    const heroX = startX + (endX - startX) * t;
-    const px = CENTER_X;
-    const py = player.y + cameraOffset;
-    const heroY = py - 70 - Math.sin(t * Math.PI) * 55;
+  function drawSlimes(stuckOnes) {
+    slimes.forEach(s => {
+      if (s.stuck !== stuckOnes) return;
+      const x = s.stuck ? CENTER_X + s.offX : s.x;
+      const y = (s.stuck ? player.y - 6 + s.offY : s.y) + cameraOffset;
+      if (y < -50 || y > CANVAS_H + 50) return;
+      const w = Math.sin(s.wob);
+      const rx = SLIME_R * (1 + 0.09 * w);
+      const ry = SLIME_R * (0.82 - 0.09 * w);
+      ctx.save();
+      ctx.translate(x, y);
 
-    const handX = heroX + side * 16;
+      // body
+      const grad = ctx.createRadialGradient(-6, -8, 3, 0, 0, SLIME_R * 1.3);
+      grad.addColorStop(0, '#d6ffd0');
+      grad.addColorStop(0.4, '#6cf27a');
+      grad.addColorStop(1, '#1f9a3c');
+      ctx.globalAlpha = 0.93;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, 0, Math.PI, Math.PI * 2);
+      ctx.lineTo(rx, ry * 0.55);
+      ctx.quadraticCurveTo(rx * 0.5, ry * 0.9, 0, ry * 0.6);
+      ctx.quadraticCurveTo(-rx * 0.5, ry * 0.95, -rx, ry * 0.55);
+      ctx.closePath();
+      ctx.fill();
+
+      // drip when stuck
+      if (s.stuck) {
+        ctx.fillStyle = '#3fd25a';
+        ctx.beginPath();
+        ctx.ellipse(rx * 0.4, ry * 0.6 + 6 + Math.abs(w) * 3, 3, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // eyes + mouth
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(-6, -3, 4.5, 0, Math.PI * 2);
+      ctx.arc(6, -3, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f2a14';
+      ctx.beginPath();
+      ctx.arc(-5, -2.5, 2.2, 0, Math.PI * 2);
+      ctx.arc(7, -2.5, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#0f2a14';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 4, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // Helicopter: back pass (tail, rotor, cabin interior) is drawn before the hero, front pass
+  // (glass, lower fuselage, skids) after, so the hero sits inside the cabin.
+  function drawHeli(front) {
+    if (!heli) return;
+    const wy = heli.boarded ? player.y : heli.worldY + Math.sin(performance.now() / 500) * 4;
+    const y = wy + cameraOffset;
+    if (y < -130 || y > CANVAS_H + 130) return;
+    const t = performance.now() / 1000;
+    ctx.save();
+    ctx.translate(CENTER_X, y);
+    ctx.lineCap = 'round';
+    if (!front) {
+      // tail boom, fin and spinning tail rotor
+      ctx.strokeStyle = '#c9302c';
+      ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(26, -4); ctx.lineTo(92, -20); ctx.stroke();
+      ctx.fillStyle = '#c9302c';
+      ctx.beginPath(); ctx.moveTo(86, -20); ctx.lineTo(100, -40); ctx.lineTo(102, -16); ctx.closePath(); ctx.fill();
+      const ta = t * 50;
+      ctx.strokeStyle = 'rgba(40,40,40,0.8)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(98 + Math.cos(ta) * 12, -20 + Math.sin(ta) * 12);
+      ctx.lineTo(98 - Math.cos(ta) * 12, -20 - Math.sin(ta) * 12);
+      ctx.stroke();
+
+      // mast and main rotor
+      ctx.strokeStyle = '#555';
+      ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(0, -42); ctx.lineTo(0, -58); ctx.stroke();
+      ctx.fillStyle = 'rgba(60,60,70,0.22)';
+      ctx.beginPath(); ctx.ellipse(0, -60, 78, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#2b2b33';
+      ctx.lineWidth = 5;
+      const ra = t * 40;
+      [0, Math.PI / 2].forEach(off => {
+        const c = Math.cos(ra + off);
+        ctx.beginPath(); ctx.moveTo(-74 * c, -60); ctx.lineTo(74 * c, -60); ctx.stroke();
+      });
+
+      // cabin interior
+      ctx.fillStyle = 'rgba(30,44,70,0.55)';
+      ctx.beginPath(); ctx.ellipse(0, -4, 42, 48, 0, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // lower fuselage hides the hero's legs
+      ctx.fillStyle = '#d9342b';
+      ctx.beginPath(); ctx.roundRect(-46, 2, 92, 34, 14); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-40, 18, 80, 4);
+
+      // glass dome
+      ctx.fillStyle = 'rgba(170,220,255,0.18)';
+      ctx.strokeStyle = 'rgba(200,235,255,0.9)';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(0, 2, 42, 48, 0, Math.PI, Math.PI * 2); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(-4, 2, 34, Math.PI * 1.15, Math.PI * 1.45); ctx.stroke();
+
+      // skids
+      ctx.strokeStyle = '#2b2b33';
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-46, 50); ctx.lineTo(46, 50); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-26, 34); ctx.lineTo(-28, 50); ctx.moveTo(26, 34); ctx.lineTo(28, 50); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Cloud banks the rotor tears apart: each splits into a left and a right half that drift away.
+  function drawHeliClouds() {
+    if (!heli) return;
+    heli.clouds.forEach(c => {
+      const y = c.y + cameraOffset;
+      if (y < -90 || y > CANVAS_H + 90) return;
+      ctx.save();
+      ctx.translate(c.x, y);
+      ctx.globalAlpha = 0.96;
+      c.puffs.forEach(p => {
+        const px = p.dx + (p.dx < 0 ? c.offL : c.offR);
+        const g = ctx.createRadialGradient(px - 5, p.dy - 6, 2, px, p.dy, p.r);
+        g.addColorStop(0, '#ffffff');
+        g.addColorStop(1, '#cfd9ee');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(px, p.dy, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.restore();
+    });
+  }
+
+  // City skyline: three parallax layers of lit-window towers, pre-rendered once.
+  let cityLayers = null;
+  function buildCityLayers() {
+    const defs = [
+      { parallax: 0.12, color: '#2b2f66', win: 0.25, minH: 180, maxH: 380 },
+      { parallax: 0.25, color: '#1d2150', win: 0.4, minH: 220, maxH: 520 },
+      { parallax: 0.45, color: '#12143a', win: 0.55, minH: 260, maxH: 640 },
+    ];
+    const sc = 2;
+    cityLayers = defs.map((d, li) => {
+      const H = d.maxH + 30;
+      const c = document.createElement('canvas');
+      c.width = CANVAS_W * sc;
+      c.height = H * sc;
+      const g = c.getContext('2d');
+      g.scale(sc, sc);
+      let x = -12 - li * 9;
+      for (let b = 0; x < CANVAS_W + 20; b++) {
+        const w = 46 + seededRand(li * 31 + b) * 50;
+        const h = d.minH + seededRand(li * 17 + b * 3 + 1) * (d.maxH - d.minH);
+        g.fillStyle = d.color;
+        g.fillRect(x, H - h, w, h);
+        if (seededRand(li * 7 + b * 5 + 2) > 0.6) g.fillRect(x + w / 2 - 1.5, H - h - 18, 3, 18); // antenna
+        const cols = Math.floor((w - 10) / 10);
+        const rows = Math.floor((h - 14) / 16);
+        for (let r = 0; r < rows; r++) {
+          for (let cc = 0; cc < cols; cc++) {
+            const s = seededRand(li * 1000 + b * 100 + r * 10 + cc);
+            if (s < d.win) {
+              g.fillStyle = s < d.win * 0.2 ? '#9fe3ff' : '#ffd98a';
+              g.fillRect(x + 7 + cc * 10, H - h + 10 + r * 16, 5, 8);
+            }
+          }
+        }
+        x += w + 2 + seededRand(b + li) * 6;
+      }
+      return { canvas: c, H, parallax: d.parallax };
+    });
+  }
+
+  function drawCity() {
+    if (!cityLayers) buildCityLayers();
+    cityLayers.forEach(L => {
+      const baseY = GROUND_Y + 6 + cameraOffset * L.parallax;
+      if (baseY - L.H > CANVAS_H) return;
+      ctx.drawImage(L.canvas, 0, baseY - L.H, CANVAS_W, L.H);
+    });
+  }
+
+  // Slingshot on a floating rock; the rubber bands stretch down to the pouch the hero sits in.
+  function drawSlingshot() {
+    if (!sling) return;
+    const baseY = sling.worldY + cameraOffset;
+    if (baseY < -140 || baseY > CANVAS_H + 160) return;
+    const rel = 10 + (state === STATE.SLING ? sling.tension * SLING_PULL : 0);
+    ctx.save();
+    ctx.translate(CENTER_X, baseY);
+    ctx.lineCap = 'round';
+
+    // floating rock with grass top
+    ctx.fillStyle = '#6b4a2f';
+    ctx.beginPath(); ctx.ellipse(0, 104, 66, 20, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-26, 124, 11, 13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(20, 128, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3f9b4a';
+    ctx.beginPath(); ctx.ellipse(0, 98, 64, 12, 0, 0, Math.PI * 2); ctx.fill();
+
+    // wooden fork
+    ctx.strokeStyle = '#8a5a30';
+    ctx.lineWidth = 11;
+    ctx.beginPath(); ctx.moveTo(0, 98); ctx.lineTo(0, 36); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 38); ctx.lineTo(-32, -6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 38); ctx.lineTo(32, -6); ctx.stroke();
+    ctx.fillStyle = '#5a3a1e';
+    ctx.beginPath(); ctx.arc(-32, -6, 7, 0, Math.PI * 2); ctx.arc(32, -6, 7, 0, Math.PI * 2); ctx.fill();
+
+    // rubber bands and pouch
+    ctx.strokeStyle = '#e0392e';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(-32, -6); ctx.lineTo(-10, rel + 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(32, -6); ctx.lineTo(10, rel + 8); ctx.stroke();
+    ctx.fillStyle = '#5b3a1f';
+    ctx.beginPath(); ctx.ellipse(0, rel + 10, 17, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // The web hero swings in pendulum arcs beside the rising hero, the web
+  // line stretching taut between his hand and the hero's wrist.
+  function drawWeb() {
+    if (!web || !web.boarded) return;
+    const baseY = player.y + cameraOffset;
+    const swing = Math.sin(web.swingPhase);
+    const heroX = CENTER_X + swing * WEB_SWING_AMP * web.side;
+    const heroY = baseY - 80 - Math.abs(Math.cos(web.swingPhase)) * 24;
+
+    const handX = heroX - swing * 10 * web.side;
     const handY = heroY + 18;
-    const wristX = px + 10;
-    const wristY = py - 10;
+    const wristX = CENTER_X + 10;
+    const wristY = baseY - 10;
     const midX = (handX + wristX) / 2;
     const midY = (handY + wristY) / 2 + 14;
 
@@ -1063,15 +1851,13 @@
 
     ctx.save();
     ctx.translate(heroX, heroY);
-    ctx.rotate(side * -0.25);
+    ctx.rotate(swing * web.side * 0.3);
 
     ctx.strokeStyle = '#1a1a1a';
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(-side * 4, 10);
-    ctx.lineTo(-side * 16, 26);
-    ctx.moveTo(side * 2, 10);
-    ctx.lineTo(-side * 10, 30);
+    ctx.moveTo(-4, 10); ctx.lineTo(-16, 26);
+    ctx.moveTo(2, 10); ctx.lineTo(-10, 30);
     ctx.stroke();
 
     const bodyGrad = ctx.createLinearGradient(-10, -14, 10, 16);
@@ -1095,7 +1881,7 @@
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(0, -6);
-    ctx.lineTo(side * 16, 18);
+    ctx.lineTo(web.side * 16, 18);
     ctx.stroke();
 
     ctx.fillStyle = '#111';
@@ -1111,18 +1897,99 @@
     ctx.restore();
   }
 
+  function drawPalm(x, y, s, lean) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(s, s);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#7a5230';
+    ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(lean * 0.4, -22, lean, -44); ctx.stroke();
+    ctx.strokeStyle = '#2f9e57';
+    ctx.lineWidth = 4;
+    [-170, -140, -110, -70, -40, -10].forEach(deg => {
+      const a = deg * Math.PI / 180;
+      const ex = lean + Math.cos(a) * 28;
+      const ey = -44 + Math.sin(a) * 10 + 14;
+      ctx.beginPath();
+      ctx.moveTo(lean, -44);
+      ctx.quadraticCurveTo(lean + Math.cos(a) * 16, -44 - 16, ex, ey);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  // Turquoise lagoon: shimmering sea with a palm island and a smaller islet on the horizon.
+  function drawLagoon() {
+    const horizon = 470 + cameraOffset * 0.3;
+    if (horizon > CANVAS_H + 60) return;
+    const t = performance.now() / 1000;
+
+    // islands sit on the horizon line
+    ctx.fillStyle = '#f0d9a0';
+    ctx.beginPath(); ctx.ellipse(110, horizon + 4, 92, 17, 0, Math.PI, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2f9e57';
+    ctx.beginPath(); ctx.ellipse(110, horizon + 2, 60, 14, 0, Math.PI, Math.PI * 2); ctx.fill();
+    drawPalm(84, horizon, 0.9, -10);
+    drawPalm(126, horizon, 1.1, 12);
+    ctx.fillStyle = '#f0d9a0';
+    ctx.beginPath(); ctx.ellipse(318, horizon + 3, 44, 9, 0, Math.PI, Math.PI * 2); ctx.fill();
+    drawPalm(318, horizon, 0.6, 6);
+
+    if (horizon >= CANVAS_H) return;
+    const sea = ctx.createLinearGradient(0, horizon, 0, CANVAS_H);
+    sea.addColorStop(0, '#5ee6dc');
+    sea.addColorStop(0.35, '#1fc4c4');
+    sea.addColorStop(1, '#0a7f95');
+    ctx.fillStyle = sea;
+    ctx.fillRect(0, horizon, CANVAS_W, CANVAS_H - horizon);
+
+    // shoreline foam around the islands
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(18, horizon + 5, 184, 2);
+    ctx.fillRect(276, horizon + 4, 84, 2);
+
+    ctx.lineWidth = 1.6;
+    for (let band = 0; band < 8; band++) {
+      const y = horizon + 24 + band * 36;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.14 + band * 0.015})`;
+      ctx.beginPath();
+      for (let x = 0; x <= CANVAS_W; x += 10) {
+        const yy = y + Math.sin(x * 0.035 + t * 1.3 + band * 1.9) * (2 + band * 0.5);
+        if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawParticles() {
+    particles.forEach(p => {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
   function render() {
     const theme = currentTheme();
     const tierGroup = Math.min(2, Math.floor((save.upgrades.spring + save.upgrades.boost) / 4));
-    if (webAssist.active && performance.now() - webAssist.startTime > WEB_ASSIST_DURATION) {
-      webAssist.active = false;
-    }
     drawBackground(theme);
     drawGround(theme);
     drawTrampoline(tierGroup);
+    drawSlingshot();
+    drawHeliClouds();
+    drawHeli(false);
+    drawBalloons();
+    drawSlimes(false);
     drawCoins();
     drawCharacter(theme);
-    if (currentLevel().webAssist && webAssist.active) drawWebAssist();
+    drawSlimes(true);
+    drawHeli(true);
+    drawWeb();
     drawParticles();
   }
 
@@ -1133,6 +2000,17 @@
 
     if (state === STATE.PLAYING) {
       updatePhysics(dt);
+      render();
+    } else if (state === STATE.HELI) {
+      updateHeli(dt);
+      render();
+    } else if (state === STATE.WEB) {
+      updateWeb(dt);
+      render();
+    } else if (state === STATE.SLING) {
+      updateSling(dt);
+      render();
+    } else if (state === STATE.PAUSED) {
       render();
     } else if (state === STATE.COMPLETE) {
       updateParticles(dt);
@@ -1231,9 +2109,11 @@
       const tier = save.upgrades[def.key];
       const maxed = tier >= MAX_TIER;
       const cost = maxed ? null : UPGRADE_COSTS[tier];
+      const defLocked = save.unlockedLevel < def.minLevel; // upgrade not introduced yet
+      const tierLocked = !maxed && tier >= tierCap();      // next tier waits for a later level
 
       const card = document.createElement('div');
-      card.className = 'upgrade-card';
+      card.className = 'upgrade-card' + (defLocked ? ' locked' : '');
 
       const top = document.createElement('div');
       top.className = 'upgrade-card-top';
@@ -1254,30 +2134,81 @@
 
       const desc = document.createElement('p');
       desc.className = 'upgrade-desc';
-      desc.textContent = maxed ? `${def.descFor(tier)} — en üst seviyeye ulaştı!` : `${def.descFor(tier)} → +${def.key === 'spring' ? SPRING_STEP.toFixed(1) : BOOST_STEP.toFixed(1)} sonraki seviyede`;
+      desc.textContent = defLocked
+        ? `Açılması için Bölüm ${def.minLevel + 1} gerekli.`
+        : (maxed ? `${def.descFor(tier)} — en üst seviye!` : `${def.descFor(tier)} → ${def.descFor(tier + 1)}`);
 
       const buyRow = document.createElement('div');
       buyRow.className = 'upgrade-buy-row';
       const costEl = document.createElement('span');
       costEl.className = 'upgrade-cost';
-      costEl.textContent = maxed ? 'MAKS' : `${cost} 🪙`;
+      costEl.textContent = defLocked ? '🔒' : (maxed ? 'MAKS' : `${cost} 🪙`);
       const buyBtn = document.createElement('button');
       buyBtn.className = 'upgrade-buy-btn';
-      buyBtn.textContent = maxed ? 'TAMAM' : 'YÜKSELT';
-      buyBtn.disabled = maxed || save.gold < cost;
+      buyBtn.textContent = defLocked ? 'KİLİTLİ' : (maxed ? 'TAMAM' : (tierLocked ? `🔒 Bölüm ${tier} gerekli` : 'YÜKSELT'));
+      buyBtn.disabled = defLocked || maxed || tierLocked || save.gold < cost;
       buyBtn.addEventListener('click', () => {
-        if (maxed || save.gold < UPGRADE_COSTS[save.upgrades[def.key]]) return;
+        if (defLocked || maxed || tierLocked || save.gold < UPGRADE_COSTS[save.upgrades[def.key]]) return;
         save.gold -= UPGRADE_COSTS[save.upgrades[def.key]];
         save.upgrades[def.key] += 1;
         persist();
         playPurchase();
+        if (shopReturn === 'game') applyUpgradeNow(def.key);
         renderShop();
+        renderUpgradeChips();
+        hudGoldAmount.textContent = String(save.gold);
       });
       buyRow.append(costEl, buyBtn);
 
       card.append(top, desc, buyRow);
       upgradeList.appendChild(card);
     });
+  }
+
+  // Upgrade levels live in fixed HUD chips at the bottom corners (they don't follow the hero).
+  function renderUpgradeChips() {
+    chipsLeft.innerHTML = '';
+    chipsRight.innerHTML = '';
+    UPGRADE_DEFS.forEach((def, i) => {
+      const lvl = save.upgrades[def.key];
+      if (lvl <= 0) return;
+      const chip = document.createElement('div');
+      chip.className = 'upgrade-chip' + (lvl >= MAX_TIER ? ' maxed' : '');
+      chip.textContent = `${def.icon} Sv.${lvl}${lvl >= MAX_TIER ? '★' : ''}`;
+      (i % 2 === 0 ? chipsLeft : chipsRight).appendChild(chip);
+    });
+  }
+
+  // A purchase made mid-run kicks in right away instead of waiting for the
+  // next bounce: spring adds an instant upward kick, boost refills the taps.
+  function applyUpgradeNow(key) {
+    if (key === 'spring') {
+      player.vy -= SPRING_STEP;
+    } else if (key === 'boost') {
+      player.boostCount = 0;
+      player.vy -= BOOST_STEP;
+      shakeSlimes(1);
+    }
+  }
+
+  function openShop(from) {
+    shopReturn = from;
+    shopBackBtn.textContent = from === 'game' ? 'DEVAM ET' : 'GERİ';
+    screens.shop.classList.toggle('shop-overlay', from === 'game');
+    renderShop();
+    showScreen('shop');
+  }
+
+  function closeShop() {
+    screens.shop.classList.remove('shop-overlay');
+    if (shopReturn === 'game') {
+      showScreen(null);
+      state = resumeState;
+    } else {
+      state = STATE.MENU;
+      renderMenu();
+      showScreen('menu');
+    }
   }
 
   // ---------- Button wiring ----------
@@ -1297,13 +2228,33 @@
   document.getElementById('shopBtn').addEventListener('click', () => {
     showShopHint = false;
     state = STATE.SHOP;
-    renderShop();
-    showScreen('shop');
+    openShop('menu');
   });
-  document.getElementById('shopBackBtn').addEventListener('click', () => {
-    state = STATE.MENU;
-    renderMenu();
-    showScreen('menu');
+  hudShopBtn.addEventListener('click', () => {
+    if (state !== STATE.PLAYING && state !== STATE.SLING && state !== STATE.HELI && state !== STATE.WEB) return;
+    resumeState = state;
+    if (sling) sling.holding = false;
+    state = STATE.PAUSED;
+    openShop('game');
+  });
+  shopBackBtn.addEventListener('click', closeShop);
+
+  // Restart needs a second tap within 2.5s so an accidental touch can't wipe a run.
+  let restartTimer = null;
+  function disarmRestart() {
+    clearTimeout(restartTimer);
+    restartTimer = null;
+    hudRestartBtn.textContent = '🔄 Yeniden Başlat';
+  }
+  hudRestartBtn.addEventListener('click', () => {
+    if (state !== STATE.PLAYING && state !== STATE.SLING && state !== STATE.HELI && state !== STATE.WEB) return;
+    if (restartTimer === null) {
+      hudRestartBtn.textContent = '❓ Emin misin?';
+      restartTimer = setTimeout(disarmRestart, 2500);
+      return;
+    }
+    disarmRestart();
+    startLevel(currentLevelIndex);
   });
 
   document.getElementById('replayBtn').addEventListener('click', () => startLevel(currentLevelIndex));
