@@ -20,8 +20,9 @@
   const CAMERA_FOLLOW_Y = 300; // once char rises above this, camera scrolls with it
 
   const UPGRADE_COSTS = [40, 90, 160, 260, 400, 600, 850, 1150]; // gold cost tier i -> i+1
-  const GOLD_PER_COIN = 15;
+  const GOLD_PER_COIN = 18; // bumped so denser coin trails pay out generously
   const LEVEL_FIRST_CLEAR_BONUS = 60;
+  const STAGNATION_MS = 15000; // no new height record for this long -> nudge toward Yükseltmeler
   const SAVE_KEY = 'trampolineHero.v2';
 
   // ---------- Themes ----------
@@ -217,43 +218,43 @@
 
   // ---------- Levels ----------
   const LEVELS = [
-    { id: 0, name: 'Bölüm 1 · Yeşil Orman', icon: '🌲', theme: 'forest', coinHeights: [180, 230, 280, 320, 370, 420, 470, 520, 570, 620] },
-    { id: 1, name: 'Bölüm 2 · Kar Dağı', icon: '🏔️', theme: 'snow', coinHeights: [200, 260, 310, 370, 430, 500, 560, 630, 700, 780] },
-    { id: 2, name: 'Bölüm 3 · Çöl Vahası', icon: '🏜️', theme: 'desert', coinHeights: [240, 310, 380, 460, 530, 620, 710, 800, 920, 1050] },
-    { id: 3, name: 'Bölüm 4 · Balon Şenliği', icon: '🎈', theme: 'party', coinHeights: [220, 300, 380, 450, 530, 610, 680, 750, 820, 900], balloons: 32 },
-    { id: 4, name: 'Bölüm 5 · Slime Körfezi', icon: '🌅', theme: 'ocean', coinHeights: [300, 440, 580, 720, 860, 990, 1130, 1250, 1380, 1500], slimes: 16 },
+    { id: 0, name: 'Bölüm 1 · Yeşil Orman', icon: '🌲', theme: 'forest', coinHeights: [180,210,245,275,305,330,365,395,425,460,490,525,555,590,620] },
+    { id: 1, name: 'Bölüm 2 · Kar Dağı', icon: '🏔️', theme: 'snow', coinHeights: [200,240,275,305,345,385,420,465,510,545,590,635,680,730,780] },
+    { id: 2, name: 'Bölüm 3 · Çöl Vahası', icon: '🏜️', theme: 'desert', coinHeights: [240,285,330,375,425,475,520,575,635,690,750,810,885,965,1050] },
+    { id: 3, name: 'Bölüm 4 · Balon Şenliği', icon: '🎈', theme: 'party', coinHeights: [220,270,325,375,420,465,520,570,620,665,710,755,800,850,900], balloons: 32 },
+    { id: 4, name: 'Bölüm 5 · Slime Körfezi', icon: '🌅', theme: 'ocean', coinHeights: [300,390,480,570,660,750,840,925,1010,1100,1180,1260,1345,1425,1500], slimes: 16 },
     // A floating slingshot waits 560 up; a good launch from it carries the hero to the top coin.
-    { id: 5, name: 'Bölüm 6 · Turkuaz Ada', icon: '🏝️', theme: 'lagoon', coinHeights: [260, 360, 490, 720, 920, 1090, 1250, 1420, 1650, 1900], slingshot: 560,
+    { id: 5, name: 'Bölüm 6 · Turkuaz Ada', icon: '🏝️', theme: 'lagoon', coinHeights: [260,325,395,480,620,765,890,1005,1115,1215,1325,1435,1585,1740,1900], slingshot: 560,
       specialBoost: 'aim', specialBoostCost: 20, specialBoostIcon: '🎯', specialBoostLabel: 'Mancınık Kuvveti',
       specialBoostDesc: 'Fırlatma metresinde yeşil bölge genişler — nişanı tutturmak kolaylaşır.' },
     // A helicopter hovers 600 up; boarding it carries the hero through cloud banks to the top coin.
-    { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260, 360, 520, 950, 1330, 1670, 2000, 2330, 2670, 3000], helicopter: 600,
+    { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260,325,405,510,765,1030,1275,1500,1715,1930,2140,2355,2575,2790,3000], helicopter: 600,
       specialBoost: 'rotor', specialBoostCost: 25, specialBoostIcon: '🚁', specialBoostLabel: 'Pervane Gücü',
       specialBoostDesc: 'Helikopter daha hızlı tırmanır, bulutlar daha az yavaşlatır.' },
     // A web-slinger swings in 650 up and carries the hero skyward on a web line.
-    { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 410, 600, 1100, 1600, 2100, 2600, 3100, 3560, 4000], webswing: 650,
+    { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300,370,465,585,885,1205,1530,1850,2170,2495,2815,3135,3430,3715,4000], webswing: 650,
       specialBoost: 'web', specialBoostCost: 25, specialBoostIcon: '🕸️', specialBoostLabel: 'Ağ Gücü',
       specialBoostDesc: 'Her dokunuş ağa çok daha güçlü bir itiş verir.' },
     // A giant baseball stadium — collect sports balls instead of gold coins.
-    { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220, 310, 400, 510, 640, 790, 970, 1160, 1400, 1650], collectible: 'sport' },
+    { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220,280,335,395,465,540,620,715,815,930,1050,1175,1330,1490,1650], collectible: 'sport' },
     // Deep space — each comet collected speeds up every future bounce and tap for the rest of the run.
-    { id: 9, name: 'Bölüm 10 · Uzay Yarışı', icon: '☄️', theme: 'space', coinHeights: [280, 410, 570, 810, 1090, 1460, 1930, 2490, 3310, 4200], collectible: 'comet' },
+    { id: 9, name: 'Bölüm 10 · Uzay Yarışı', icon: '☄️', theme: 'space', coinHeights: [280,365,455,560,705,870,1050,1275,1525,1830,2170,2550,3075,3630,4200], collectible: 'comet' },
     // The Northern Lights ripple overhead — collect snowflakes instead of gold.
-    { id: 10, name: 'Bölüm 11 · Kutup Işıkları', icon: '🌌', theme: 'aurora', coinHeights: [180, 280, 420, 630, 900, 1250, 1670, 2010, 2290, 2500], collectible: 'snowflake' },
+    { id: 10, name: 'Bölüm 11 · Kutup Işıkları', icon: '🌌', theme: 'aurora', coinHeights: [180,245,320,410,540,690,860,1075,1310,1580,1815,2030,2210,2365,2500], collectible: 'snowflake' },
     // A smoldering volcanic crater — collect glowing embers instead of gold.
-    { id: 11, name: 'Bölüm 12 · Volkan Ağzı', icon: '🌋', theme: 'volcano', coinHeights: [230, 360, 530, 800, 1160, 1600, 2130, 2580, 2930, 3200], collectible: 'ember' },
+    { id: 11, name: 'Bölüm 12 · Volkan Ağzı', icon: '🌋', theme: 'volcano', coinHeights: [230,315,410,520,685,875,1110,1380,1675,2015,2325,2605,2830,3025,3200], collectible: 'ember' },
     // Swimming up from the ocean floor toward the sunlit surface — collect pearls instead of gold.
-    { id: 12, name: 'Bölüm 13 · Okyanus Derinliği', icon: '🫧', theme: 'deepsea', coinHeights: [260, 410, 600, 900, 1310, 1800, 2400, 2900, 3300, 3600], collectible: 'pearl' },
+    { id: 12, name: 'Bölüm 13 · Okyanus Derinliği', icon: '🫧', theme: 'deepsea', coinHeights: [260,355,465,585,770,990,1250,1555,1885,2270,2615,2930,3185,3405,3600], collectible: 'pearl' },
     // A glowing underground cavern — collect crystal gems instead of gold.
-    { id: 13, name: 'Bölüm 14 · Kristal Mağara', icon: '💎', theme: 'cave', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'crystal' },
+    { id: 13, name: 'Bölüm 14 · Kristal Mağara', icon: '💎', theme: 'cave', coinHeights: [270,365,475,605,795,1020,1290,1600,1940,2335,2690,3010,3275,3500,3700], collectible: 'crystal' },
     // A warm night market full of floating paper lanterns — collect lanterns instead of gold.
-    { id: 14, name: 'Bölüm 15 · Fener Bayramı', icon: '🏮', theme: 'lantern', coinHeights: [270, 430, 630, 940, 1370, 1880, 2500, 3020, 3440, 3750], collectible: 'lantern' },
+    { id: 14, name: 'Bölüm 15 · Fener Bayramı', icon: '🏮', theme: 'lantern', coinHeights: [270,375,485,615,805,1030,1310,1625,1970,2365,2725,3050,3320,3550,3750], collectible: 'lantern' },
     // A spooky haunted castle under a sickly green moon — collect friendly ghost lights instead of gold.
-    { id: 15, name: 'Bölüm 16 · Hayalet Kale', icon: '👻', theme: 'haunted', coinHeights: [260, 410, 600, 900, 1310, 1800, 2400, 2900, 3300, 3600], collectible: 'ghost' },
+    { id: 15, name: 'Bölüm 16 · Hayalet Kale', icon: '👻', theme: 'haunted', coinHeights: [260,355,465,585,770,990,1250,1555,1885,2270,2615,2930,3185,3405,3600], collectible: 'ghost' },
     // A pastel candy kingdom — collect swirly lollipops instead of gold.
-    { id: 16, name: 'Bölüm 17 · Şeker Diyarı', icon: '🍭', theme: 'candy', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'candy' },
+    { id: 16, name: 'Bölüm 17 · Şeker Diyarı', icon: '🍭', theme: 'candy', coinHeights: [270,365,475,605,795,1020,1290,1600,1940,2335,2690,3010,3275,3500,3700], collectible: 'candy' },
     // An overgrown jungle temple — collect ancient gold relics instead of gold coins.
-    { id: 17, name: 'Bölüm 18 · Antik Tapınak', icon: '🗿', theme: 'temple', coinHeights: [270, 420, 620, 930, 1350, 1850, 2470, 2980, 3390, 3700], collectible: 'relic' },
+    { id: 17, name: 'Bölüm 18 · Antik Tapınak', icon: '🗿', theme: 'temple', coinHeights: [270,365,475,605,795,1020,1290,1600,1940,2335,2690,3010,3275,3500,3700], collectible: 'relic' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -353,6 +354,8 @@
   const boostNoBtn = document.getElementById('boostNoBtn');
   const slingHoldBanner = document.getElementById('slingHoldBanner');
   const upgradeBanner = document.getElementById('upgradeBanner');
+  const ingameUpgradeBanner = document.getElementById('ingameUpgradeBanner');
+  const hudShopHint = document.getElementById('hudShopHint');
 
   const menuGoldAmount = document.getElementById('menuGoldAmount');
   const levelList = document.getElementById('levelList');
@@ -545,6 +548,7 @@
   let clouds = [];
   let cameraOffset = 0;
   let maxHeightReached = 0;
+  let lastProgressAt = 0; // performance.now() of the last new personal-best height this run
   let collectedCount = 0;
   let lastTime = 0;
 
@@ -607,6 +611,10 @@
     renderUpgradeChips();
     cameraOffset = 0;
     maxHeightReached = 0;
+    lastProgressAt = performance.now();
+    clearTimeout(ingameHintTimer);
+    ingameUpgradeBanner.hidden = true;
+    hudShopHint.hidden = true;
     collectedCount = 0;
     coinCountEl.textContent = '0';
     coinTotalEl.textContent = String(level.coinHeights.length);
@@ -895,7 +903,19 @@
     cameraOffset = Math.max(0, CAMERA_FOLLOW_Y - player.y);
 
     const heightAboveTrampoline = Math.max(0, TRAMPOLINE_Y - player.y);
-    if (heightAboveTrampoline > maxHeightReached) maxHeightReached = heightAboveTrampoline;
+    if (heightAboveTrampoline > maxHeightReached) {
+      maxHeightReached = heightAboveTrampoline;
+      lastProgressAt = performance.now();
+    }
+
+    // Stuck below the finish line for a while despite any upgrades already
+    // bought? Nudge the player back toward Yükseltmeler, and keep nudging
+    // every STAGNATION_MS as long as they're still stuck.
+    const stagnationGoal = currentLevel().coinHeights[currentLevel().coinHeights.length - 1];
+    if (maxHeightReached < stagnationGoal && performance.now() - lastProgressAt > STAGNATION_MS) {
+      lastProgressAt = performance.now();
+      flashIngameUpgradeHint();
+    }
 
     collectCoins();
 
@@ -1123,6 +1143,22 @@
     upgradeBanner.hidden = false;
     clearTimeout(upgradeBannerTimer);
     upgradeBannerTimer = setTimeout(() => { upgradeBanner.hidden = true; }, 2200);
+  }
+
+  // Shown mid-run when the player is stuck well below the finish line: the
+  // same WordArt "YÜKSELTMELER" treatment plus a bouncing arrow over the HUD's
+  // own Yükseltmeler button, so the suggestion appears without quitting the run.
+  let ingameHintTimer = null;
+  function flashIngameUpgradeHint() {
+    ingameUpgradeBanner.hidden = true;
+    void ingameUpgradeBanner.offsetWidth;
+    ingameUpgradeBanner.hidden = false;
+    hudShopHint.hidden = false;
+    clearTimeout(ingameHintTimer);
+    ingameHintTimer = setTimeout(() => {
+      ingameUpgradeBanner.hidden = true;
+      hudShopHint.hidden = true;
+    }, 3200);
   }
 
   function updateSling(dt) {
@@ -3571,6 +3607,9 @@
   });
   hudShopBtn.addEventListener('click', () => {
     if (state !== STATE.PLAYING && state !== STATE.SLING && state !== STATE.HELI && state !== STATE.WEB) return;
+    clearTimeout(ingameHintTimer);
+    ingameUpgradeBanner.hidden = true;
+    hudShopHint.hidden = true;
     resumeState = state;
     if (sling) sling.holding = false;
     state = STATE.PAUSED;

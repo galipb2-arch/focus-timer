@@ -133,7 +133,13 @@
         <div class="chip-col right" id="chipsRight"></div>
       </div>
       <div class="hud-actions">
-        <button class="hud-shop-btn" id="hudShopBtn">🛠️ Yükseltmeler</button>
+        <div class="hud-shop-wrap" id="hudShopWrap">
+          <div class="shop-hint" id="hudShopHint" hidden>
+            <span class="shop-hint-arrow">⬆️</span>
+            <span class="shop-hint-text">Yükseltme yap!</span>
+          </div>
+          <button class="hud-shop-btn" id="hudShopBtn">🛠️ Yükseltmeler</button>
+        </div>
         <button class="hud-shop-btn" id="hudRestartBtn">🔄 Yeniden Başlat</button>
         <button class="hud-shop-btn hud-quit-btn" id="hudQuitBtn">✕ Bölümü Bitir</button>
       </div>
@@ -154,6 +160,7 @@
   </div>
   <div class="sling-result" id="slingResult" hidden></div>
   <div class="wordart-banner sling-hold-banner" id="slingHoldBanner" hidden><span class="wordart-text">BASILI TUT!</span></div>
+  <div class="wordart-banner ingame-upgrade-banner" id="ingameUpgradeBanner" hidden><span class="wordart-text">YÜKSELTMELER</span></div>
 
   <!-- Bölüm tamamlandı ekranı -->
   <section class="screen complete-screen" id="completeScreen" hidden>

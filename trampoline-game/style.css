@@ -606,6 +606,11 @@ body {
   gap: 8px;
 }
 
+.hud-shop-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
 .hud-shop-btn {
   pointer-events: auto;
   border: 1px solid rgba(255, 207, 63, 0.45);
@@ -761,6 +766,8 @@ body {
 .wordart-banner.upgrade-banner .wordart-text { font-size: 28px; }
 .wordart-banner.sling-hold-banner { top: 18%; }
 .wordart-banner.sling-hold-banner .wordart-text { font-size: 34px; }
+.wordart-banner.ingame-upgrade-banner { top: 20%; }
+.wordart-banner.ingame-upgrade-banner .wordart-text { font-size: 28px; }
 
 @keyframes wordart-pop {
   0% { opacity: 0; transform: translate(-50%, -50%) rotate(-10deg) scale(0.3); }
