@@ -214,6 +214,39 @@
       trunk: '#6a5a3e',
       accent: '#e0b84a',
     },
+    cloudkingdom: {
+      skyTop: [40, 50, 110], skyTopHigh: [230, 220, 255],
+      skyBot: [90, 100, 170], skyBotHigh: [255, 240, 255],
+      groundNear: '#4a5590', groundFar: '#8a92c8',
+      groundSpeckle: 'rgba(255,255,255,0.25)',
+      sunColor: '#fff8ff', sunGlow: 'rgba(255, 240, 255, 0.45)',
+      decor: 'cloudkingdom',
+      foliage: ['#ffd6ec', '#d6e8ff', '#fff3c4'], // pastel cloud-puff tints
+      trunk: '#ffffff',
+      accent: '#ffb3e0',
+    },
+    flower: {
+      skyTop: [60, 150, 110], skyTopHigh: [200, 250, 220],
+      skyBot: [110, 200, 150], skyBotHigh: [235, 255, 235],
+      groundNear: '#2f7a3a', groundFar: '#5fae5a',
+      groundSpeckle: 'rgba(255,255,255,0.2)',
+      sunColor: '#fff6d0', sunGlow: 'rgba(255, 246, 208, 0.35)',
+      decor: 'flower',
+      foliage: ['#ff6fae', '#ffb347', '#9b6fff'], // petal color variants
+      trunk: '#2f5a2a',
+      accent: '#ff4f9e',
+    },
+    pirate: {
+      skyTop: [18, 60, 90], skyTopHigh: [135, 206, 235],
+      skyBot: [30, 100, 130], skyBotHigh: [210, 240, 250],
+      groundNear: '#c9a35a', groundFar: '#e4c488',
+      groundSpeckle: 'rgba(120,80,30,0.2)',
+      sunColor: '#fff6d0', sunGlow: 'rgba(255, 246, 208, 0.35)',
+      decor: 'pirate',
+      foliage: ['#1f6b3a', '#5a3a20', '#dcdcdc'], // palm / mast / sail variants
+      trunk: '#5a3a20',
+      accent: '#ffd24a',
+    },
   };
 
   // ---------- Levels ----------
@@ -255,6 +288,12 @@
     { id: 16, name: 'Bölüm 17 · Şeker Diyarı', icon: '🍭', theme: 'candy', coinHeights: [270,365,475,605,795,1020,1290,1600,1940,2335,2690,3010,3275,3500,3700], collectible: 'candy' },
     // An overgrown jungle temple — collect ancient gold relics instead of gold coins.
     { id: 17, name: 'Bölüm 18 · Antik Tapınak', icon: '🗿', theme: 'temple', coinHeights: [270,365,475,605,795,1020,1290,1600,1940,2335,2690,3010,3275,3500,3700], collectible: 'relic' },
+    // Floating islands drifting among pastel clouds — collect rainbows instead of gold.
+    { id: 18, name: 'Bölüm 19 · Bulut Krallığı', icon: '☁️', theme: 'cloudkingdom', coinHeights: [270,365,475,605,795,1020,1290,1600,1940,2335,2690,3010,3275,3500,3700], collectible: 'rainbow' },
+    // A sunlit garden of giant blossoms — collect butterflies instead of gold.
+    { id: 19, name: 'Bölüm 20 · Çiçek Bahçesi', icon: '🌸', theme: 'flower', coinHeights: [200,250,305,365,435,510,590,685,785,895,1010,1135,1270,1410,1560], collectible: 'butterfly' },
+    // A tropical island of palms and shipwrecks — collect pirate treasure instead of gold.
+    { id: 20, name: 'Bölüm 21 · Korsan Adası', icon: '🏴‍☠️', theme: 'pirate', coinHeights: [260,355,465,585,770,990,1250,1555,1885,2270,2615,2930,3185,3405,3600], collectible: 'treasure' },
   ];
 
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
@@ -591,8 +630,11 @@
       isGhost: level.collectible === 'ghost',
       isCandy: level.collectible === 'candy',
       isRelic: level.collectible === 'relic',
+      isRainbow: level.collectible === 'rainbow',
+      isButterfly: level.collectible === 'butterfly',
+      isTreasure: level.collectible === 'treasure',
     }));
-    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : level.collectible === 'lantern' ? '🏮' : level.collectible === 'ghost' ? '👻' : level.collectible === 'candy' ? '🍭' : level.collectible === 'relic' ? '🗿' : '🪙';
+    hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : level.collectible === 'lantern' ? '🏮' : level.collectible === 'ghost' ? '👻' : level.collectible === 'candy' ? '🍭' : level.collectible === 'relic' ? '🗿' : level.collectible === 'rainbow' ? '🌈' : level.collectible === 'butterfly' ? '🦋' : level.collectible === 'treasure' ? '💰' : '🪙';
     cometBoost = 0;
     runBoost = { aim: false, rotor: false, web: false };
     particles = [];
@@ -946,7 +988,7 @@
         if (coin.isComet) cometBoost += COMET_SPEED_STEP;
         persist();
         playGoldChime();
-        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : coin.isRelic ? '#e0b84a' : '#ffd24a');
+        spawnParticles(CENTER_X, coin.worldY + cameraOffset, 14, coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : coin.isRelic ? '#e0b84a' : coin.isRainbow ? '#ff9ad6' : coin.isButterfly ? '#9b6fff' : coin.isTreasure ? '#ffd24a' : '#ffd24a');
         if (collectedCount >= currentLevel().coinHeights.length) {
           triggerLevelComplete();
         }
@@ -1550,6 +1592,9 @@
         else if (theme.decor === 'haunted') drawCastleSpire(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'candy') drawCandyDecor(tx, y, scale, color, itemSeed);
         else if (theme.decor === 'temple') drawTemplePillar(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'cloudkingdom') drawCloudTurret(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'flower') drawGiantFlower(tx, y, scale, color, itemSeed);
+        else if (theme.decor === 'pirate') drawPirateDecor(tx, y, scale, color, itemSeed);
       }
     }
   }
@@ -2179,6 +2224,128 @@
     ctx.restore();
   }
 
+  // Bölüm 19's decor: a small floating island with a cloud-puff base and a
+  // tiny pastel turret on top, drifting through Bulut Krallığı's sky.
+  function drawCloudTurret(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.55) return; // thin out the grid
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = 0.95;
+    [[-16, 6, 14], [0, -2, 18], [16, 6, 14], [0, 12, 16]].forEach(([dx, dy, r]) => {
+      ctx.beginPath();
+      ctx.arc(dx, dy, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = color;
+    ctx.fillRect(-6, -28, 12, 20);
+    ctx.beginPath();
+    ctx.moveTo(-8, -28);
+    ctx.lineTo(0, -40);
+    ctx.lineTo(8, -28);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -40);
+    ctx.lineTo(0, -48);
+    ctx.stroke();
+    ctx.fillStyle = lighten(color, 40);
+    ctx.beginPath();
+    ctx.moveTo(0, -48);
+    ctx.lineTo(7, -44);
+    ctx.lineTo(0, -40);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Bölüm 20's decor: a giant stylized flower, petals tinted per depth layer.
+  function drawGiantFlower(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.55) return;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(0, 46, 14, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#2f7a3a';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(0, 46);
+    ctx.quadraticCurveTo(6, 10, 0, -6);
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    const petals = 6;
+    for (let i = 0; i < petals; i++) {
+      const a = (i / petals) * Math.PI * 2 + seed;
+      ctx.save();
+      ctx.translate(Math.cos(a) * 11, -6 + Math.sin(a) * 11);
+      ctx.rotate(a);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 9, 5.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = '#ffd24a';
+    ctx.beginPath();
+    ctx.arc(0, -6, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Bölüm 21's decor: a leaning palm tree, fronds tinted per depth layer.
+  function drawPirateDecor(x, y, scale, color, seed) {
+    if (y < -160 || y > CANVAS_H + 160) return;
+    if (seededRand(seed + 2) > 0.55) return;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.beginPath();
+    ctx.ellipse(4, 46, 16, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const lean = Math.sin(seed) * 10;
+    ctx.strokeStyle = '#8a6a3a';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 46);
+    ctx.quadraticCurveTo(lean * 0.6, 0, lean, -40);
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (i - 2) * 0.5;
+      ctx.save();
+      ctx.translate(lean, -40);
+      ctx.rotate(a);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(14, -4, 26, 4);
+      ctx.quadraticCurveTo(14, 2, 0, 0);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
   function lighten(hex, amt) { return shade(hex, amt); }
   function darken(hex, amt) { return shade(hex, -amt); }
   function shade(hex, amt) {
@@ -2528,7 +2695,7 @@
 
       ctx.save();
       ctx.globalAlpha = 0.5 + 0.3 * Math.sin(coin.wobble * 1.5);
-      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : coin.isRelic ? '#e0b84a' : '#fff6d0';
+      ctx.fillStyle = coin.ballType ? '#ffffff' : coin.isComet ? '#9fd3ff' : coin.isSnowflake ? '#e8fbff' : coin.isEmber ? '#ff8a3d' : coin.isPearl ? '#eaf6ff' : coin.isCrystal ? '#c060e0' : coin.isLantern ? '#ffcf6a' : coin.isGhost ? '#9fffc0' : coin.isCandy ? '#ff6b9d' : coin.isRelic ? '#e0b84a' : coin.isRainbow ? '#ff9ad6' : coin.isButterfly ? '#9b6fff' : coin.isTreasure ? '#ffd24a' : '#fff6d0';
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha *= 0.15;
       ctx.beginPath();
@@ -2558,6 +2725,12 @@
         drawCandyPickup();
       } else if (coin.isRelic) {
         drawRelic();
+      } else if (coin.isRainbow) {
+        drawRainbowPickup();
+      } else if (coin.isButterfly) {
+        drawButterfly(spin);
+      } else if (coin.isTreasure) {
+        drawTreasure();
       } else {
         ctx.scale(Math.max(0.25, Math.abs(spin)), 1);
         if (coin.ballType) {
@@ -2863,6 +3036,78 @@
     ctx.beginPath();
     ctx.moveTo(-3, 6);
     ctx.quadraticCurveTo(0, 9, 3, 6);
+    ctx.stroke();
+  }
+
+  // Bölüm 19's collectible: a small floating rainbow arc with a puff of
+  // cloud at each end. Assumes the context is already translated to center.
+  function drawRainbowPickup() {
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.arc(-11, 5, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(11, 5, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    const bands = ['#ff5c5c', '#ffb347', '#ffe066', '#8fe88f', '#6fb4ff', '#b38cff'];
+    bands.forEach((c, i) => {
+      ctx.strokeStyle = c;
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.arc(0, 8, 13 - i * 2.4, Math.PI, 0);
+      ctx.stroke();
+    });
+  }
+
+  // Bölüm 20's collectible: a fluttering butterfly, wings beating with the
+  // same spin phase used for the default coin flip. Assumes the context is
+  // already translated to the butterfly's center.
+  function drawButterfly(spin) {
+    const flap = Math.max(0.2, Math.abs(spin));
+    ctx.save();
+    ctx.scale(flap, 1);
+    const wingGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 12);
+    wingGrad.addColorStop(0, '#ffe0f6');
+    wingGrad.addColorStop(1, '#9b6fff');
+    ctx.fillStyle = wingGrad;
+    [-1, 1].forEach(side => {
+      ctx.beginPath();
+      ctx.ellipse(side * 7, -5, 8, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(side * 6, 5, 6, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+    ctx.fillStyle = '#3a2a4a';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 1.6, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Bölüm 21's collectible: a small treasure gem catching the light.
+  // Assumes the context is already translated to the gem's center.
+  function drawTreasure() {
+    const grad = ctx.createLinearGradient(-10, -10, 10, 10);
+    grad.addColorStop(0, '#fff6c0');
+    grad.addColorStop(0.5, '#ffd24a');
+    grad.addColorStop(1, '#c98a10');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(0, -11);
+    ctx.lineTo(9, -2);
+    ctx.lineTo(5, 11);
+    ctx.lineTo(-5, 11);
+    ctx.lineTo(-9, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#8a5a00';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -11);
+    ctx.lineTo(0, 11);
     ctx.stroke();
   }
 
