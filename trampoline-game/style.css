@@ -289,6 +289,7 @@ body {
 }
 .btn:active { transform: scale(0.96); }
 .btn:focus-visible { outline: 3px solid #9be8ff; outline-offset: 2px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
 .btn-lg {
   font-size: 20px;
@@ -583,6 +584,21 @@ body {
 .upgrade-card.locked { opacity: 0.55; }
 .howto-screen { justify-content: flex-start; overflow-y: auto; }
 
+/* Main menu: now 18+ levels, so only the level list scrolls — header and
+   buttons stay put, same pattern as the upgrades screen. */
+.menu-screen {
+  justify-content: flex-start;
+  padding-top: 22px;
+  padding-bottom: 18px;
+  gap: 10px;
+}
+.menu-screen .level-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .hud-actions {
   display: flex;
   flex-wrap: wrap;
@@ -694,6 +710,73 @@ body {
   font-weight: 800;
   font-size: 28px;
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
+}
+
+/* Bölüme özel takviye teklif ekranı */
+.boost-desc {
+  margin: 0;
+  max-width: 300px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Big, playful "WordArt"-style banner: a bold gradient-filled pop-in that
+   bounces once then fades, on a soft dark pill so it stays legible over any
+   background — used for the slingshot's hold prompt and the upgrade nudge
+   after an unfinished run. */
+.wordart-banner {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  z-index: 6;
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+  padding: 10px 22px;
+  border-radius: 18px;
+  background-color: rgba(4, 16, 10, 0.75);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  animation: wordart-pop 2.2s ease-in-out forwards;
+}
+
+.wordart-banner .wordart-text {
+  display: inline-block;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: 0.03em;
+  background: linear-gradient(120deg, #fff066, #ff6fae, #6fd6ff, #fff066);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(40, 14, 0, 0.8);
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.4));
+  animation: wordart-shine 2.2s linear infinite;
+}
+
+.wordart-banner.upgrade-banner { top: 42%; }
+.wordart-banner.upgrade-banner .wordart-text { font-size: 28px; }
+.wordart-banner.sling-hold-banner { top: 18%; }
+.wordart-banner.sling-hold-banner .wordart-text { font-size: 34px; }
+
+@keyframes wordart-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-10deg) scale(0.3); }
+  16% { opacity: 1; transform: translate(-50%, -50%) rotate(4deg) scale(1.18); }
+  28% { transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
+  78% { opacity: 1; transform: translate(-50%, -50%) rotate(-2deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(2deg) scale(0.85); }
+}
+
+@keyframes wordart-shine {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordart-banner { animation-duration: 0.01ms !important; }
 }
 
 .screen.shop-overlay {

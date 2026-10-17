@@ -223,11 +223,17 @@
     { id: 3, name: 'Bölüm 4 · Balon Şenliği', icon: '🎈', theme: 'party', coinHeights: [220, 300, 380, 450, 530, 610, 680, 750, 820, 900], balloons: 32 },
     { id: 4, name: 'Bölüm 5 · Slime Körfezi', icon: '🌅', theme: 'ocean', coinHeights: [300, 440, 580, 720, 860, 990, 1130, 1250, 1380, 1500], slimes: 16 },
     // A floating slingshot waits 560 up; a good launch from it carries the hero to the top coin.
-    { id: 5, name: 'Bölüm 6 · Turkuaz Ada', icon: '🏝️', theme: 'lagoon', coinHeights: [260, 360, 490, 720, 920, 1090, 1250, 1420, 1650, 1900], slingshot: 560 },
+    { id: 5, name: 'Bölüm 6 · Turkuaz Ada', icon: '🏝️', theme: 'lagoon', coinHeights: [260, 360, 490, 720, 920, 1090, 1250, 1420, 1650, 1900], slingshot: 560,
+      specialBoost: 'aim', specialBoostCost: 20, specialBoostIcon: '🎯', specialBoostLabel: 'Mancınık Kuvveti',
+      specialBoostDesc: 'Fırlatma metresinde yeşil bölge genişler — nişanı tutturmak kolaylaşır.' },
     // A helicopter hovers 600 up; boarding it carries the hero through cloud banks to the top coin.
-    { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260, 360, 520, 950, 1330, 1670, 2000, 2330, 2670, 3000], helicopter: 600 },
+    { id: 6, name: 'Bölüm 7 · Gökdelenler', icon: '🏙️', theme: 'city', coinHeights: [260, 360, 520, 950, 1330, 1670, 2000, 2330, 2670, 3000], helicopter: 600,
+      specialBoost: 'rotor', specialBoostCost: 25, specialBoostIcon: '🚁', specialBoostLabel: 'Pervane Gücü',
+      specialBoostDesc: 'Helikopter daha hızlı tırmanır, bulutlar daha az yavaşlatır.' },
     // A web-slinger swings in 650 up and carries the hero skyward on a web line.
-    { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 410, 600, 1100, 1600, 2100, 2600, 3100, 3560, 4000], webswing: 650 },
+    { id: 7, name: 'Bölüm 8 · Örümcek Kulesi', icon: '🕸️', theme: 'city', coinHeights: [300, 410, 600, 1100, 1600, 2100, 2600, 3100, 3560, 4000], webswing: 650,
+      specialBoost: 'web', specialBoostCost: 25, specialBoostIcon: '🕸️', specialBoostLabel: 'Ağ Gücü',
+      specialBoostDesc: 'Her dokunuş ağa çok daha güçlü bir itiş verir.' },
     // A giant baseball stadium — collect sports balls instead of gold coins.
     { id: 8, name: 'Bölüm 9 · Beyzbol Stadyumu', icon: '⚾', theme: 'stadium', coinHeights: [220, 310, 400, 510, 640, 790, 970, 1160, 1400, 1650], collectible: 'sport' },
     // Deep space — each comet collected speeds up every future bounce and tap for the rest of the run.
@@ -253,23 +259,32 @@
   const SPORT_BALL_TYPES = ['soccer', 'basketball', 'tennis'];
 
   const HELI_BASE = 6;
-  const HELI_BASE_STEP = 0.7;
   const HELI_MAX = 15;
   const HELI_BURST_ADD = 3.2;
   const HELI_BURST_MAX = 8;
+  const HELI_CLOUD_SLOW_BASE = 0.86;     // speed kept per cloud hit, no boost
+  // Pervane Gücü: a one-time per-run purchase (not a general upgrade) that
+  // gives the helicopter a flat speed boost and makes clouds slow it less.
+  const HELI_ROTOR_BOOST = 5.6;
+  const HELI_CLOUD_SLOW_BOOSTED = 0.956;
 
   // Bölüm 8's web-slinger rescue: unlike the helicopter's steady auto-climb,
   // the web swing has no baseline speed — it bleeds off fast between taps,
   // so the player has to keep tapping continuously to keep climbing at all.
   // Stop tapping and the hero starts sinking back down.
-  const WEB_TAP_IMPULSE_BASE = 3.2;  // speed added per tap, tier 0
-  const WEB_TAP_STEP = 0.45;         // added per Ağ Gücü tier
-  const WEB_DECAY = 0.915;           // multiplicative speed decay per frame-tick
+  const WEB_TAP_IMPULSE_BASE = 3.6;  // speed added per tap
+  const WEB_DECAY = 0.935;           // multiplicative speed decay per frame-tick
   const WEB_MAX = 17;
   const WEB_MIN = -2;                // gentle sink when the player stops tapping
   const WEB_TAP_COOLDOWN_MS = 80;
   const WEB_SWING_SPEED = 0.045;
   const WEB_SWING_AMP = 70;
+  // Ağ Gücü: a one-time per-run purchase adding extra impulse per tap.
+  const WEB_BOOST_IMPULSE = 3.6;
+
+  // Usta Nişancı (slingshot aim): a one-time per-run purchase that shrinks
+  // the red/yellow zones so green starts earlier and covers more of the meter.
+  const SLING_AIM_BOOST_SCALE = 0.6;
 
   // Slingshot launch meter: tension 0..1 → red below SLING_RED_MAX, green from SLING_GREEN_MIN.
   const SLING_RED_MAX = 0.35;
@@ -296,9 +311,6 @@
     { key: 'magnet', icon: '🧲', name: 'Altın Mıknatısı', minLevel: 1, descFor: t => `Altın toplama menzili +${t * 7}` },
     { key: 'gold', icon: '🪙', name: 'Altın Çarpanı', minLevel: 1, descFor: t => `Her altın %${100 + t * 20} değerinde` },
     { key: 'armor', icon: '🛡️', name: 'Zırh', minLevel: 3, descFor: t => `Balon ve slime direnci +%${t * 10}` },
-    { key: 'aim', icon: '🎯', name: 'Usta Nişancı', minLevel: 5, descFor: t => `Mancınıkta yeşil bölge %${Math.round(100 - 70 * Math.max(0.6, 1 - t * 0.05))}` },
-    { key: 'rotor', icon: '🚁', name: 'Pervane Gücü', minLevel: 6, descFor: t => `Helikopter hızı +${(t * 0.7).toFixed(1)}, bulutlar daha az yavaşlatır` },
-    { key: 'web', icon: '🕸️', name: 'Ağ Gücü', minLevel: 7, descFor: t => `Dokunuş başına ağ itiş gücü +${(t * WEB_TAP_STEP).toFixed(1)}` },
   ];
 
   // Higher tiers open up as later levels are unlocked: 2 tiers at the start, +1 per level.
@@ -314,6 +326,7 @@
     menu: document.getElementById('menuScreen'),
     howto: document.getElementById('howtoScreen'),
     shop: document.getElementById('shopScreen'),
+    boost: document.getElementById('boostScreen'),
     complete: document.getElementById('completeScreen'),
   };
   const hud = document.getElementById('hud');
@@ -330,6 +343,16 @@
   const shopBackBtn = document.getElementById('shopBackBtn');
   const loadingFill = document.getElementById('loadingFill');
   const loadingLabel = document.getElementById('loadingLabel');
+
+  const boostIcon = document.getElementById('boostIcon');
+  const boostTitle = document.getElementById('boostTitle');
+  const boostDesc = document.getElementById('boostDesc');
+  const boostGoldAmount = document.getElementById('boostGoldAmount');
+  const boostCostLabel = document.getElementById('boostCostLabel');
+  const boostYesBtn = document.getElementById('boostYesBtn');
+  const boostNoBtn = document.getElementById('boostNoBtn');
+  const slingHoldBanner = document.getElementById('slingHoldBanner');
+  const upgradeBanner = document.getElementById('upgradeBanner');
 
   const menuGoldAmount = document.getElementById('menuGoldAmount');
   const levelList = document.getElementById('levelList');
@@ -489,7 +512,7 @@
   }
 
   // ---------- Game state ----------
-  const STATE = { LOADING: 'loading', MENU: 'menu', HOWTO: 'howto', SHOP: 'shop', PAUSED: 'paused', PLAYING: 'playing', SLING: 'sling', HELI: 'heli', WEB: 'web', COMPLETE: 'complete' };
+  const STATE = { LOADING: 'loading', MENU: 'menu', HOWTO: 'howto', SHOP: 'shop', BOOST: 'boost', PAUSED: 'paused', PLAYING: 'playing', SLING: 'sling', HELI: 'heli', WEB: 'web', COMPLETE: 'complete' };
   let state = STATE.LOADING;
   let currentLevelIndex = 0;
 
@@ -513,6 +536,9 @@
   let heli = null;                // { worldY, boarded, speed, burst, clouds } on helicopter levels
   let web = null;                 // { worldY, boarded, speed, burst, swingPhase, side } on web-swing levels
   let cometBoost = 0;             // accumulates on comet levels; multiplies bounce/boost speed
+  // Per-run special boosts bought for a small amount of gold (Bölüm 6/7/8
+  // specific), not part of the general Yükseltmeler shop. Reset every attempt.
+  let runBoost = { aim: false, rotor: false, web: false };
   let showShopHint = false;       // nudges the player toward Yükseltmeler after an unfinished run
   let shopReturn = 'menu'; // where the upgrades screen returns to: 'menu' | 'game'
   let particles = [];
@@ -564,6 +590,7 @@
     }));
     hudCoinIcon.textContent = level.collectible === 'sport' ? '⚽' : level.collectible === 'comet' ? '☄️' : level.collectible === 'snowflake' ? '❄️' : level.collectible === 'ember' ? '🔥' : level.collectible === 'pearl' ? '🫧' : level.collectible === 'crystal' ? '💎' : level.collectible === 'lantern' ? '🏮' : level.collectible === 'ghost' ? '👻' : level.collectible === 'candy' ? '🍭' : level.collectible === 'relic' ? '🗿' : '🪙';
     cometBoost = 0;
+    runBoost = { aim: false, rotor: false, web: false };
     particles = [];
     balloons = makeBalloons(level);
     slimes = makeSlimes(level);
@@ -700,11 +727,46 @@
   function startLevel(index) {
     audio();
     resetLevel(index);
+    const level = currentLevel();
+    if (level.specialBoost) {
+      showBoostPrompt(level);
+    } else {
+      beginPlaying();
+    }
+  }
+
+  function beginPlaying() {
     state = STATE.PLAYING;
     screens.shop.classList.remove('shop-overlay');
     showScreen(null);
     hud.hidden = false;
   }
+
+  // Bölüm 6/7/8's one-time per-run boost offer, shown right after the level
+  // resets and before gameplay actually starts.
+  function showBoostPrompt(level) {
+    state = STATE.BOOST;
+    boostIcon.textContent = level.specialBoostIcon;
+    boostTitle.textContent = level.specialBoostLabel;
+    boostDesc.textContent = level.specialBoostDesc;
+    boostCostLabel.textContent = String(level.specialBoostCost);
+    boostGoldAmount.textContent = String(save.gold);
+    boostYesBtn.disabled = save.gold < level.specialBoostCost;
+    showScreen('boost');
+  }
+
+  boostYesBtn.addEventListener('click', () => {
+    const level = currentLevel();
+    if (level.specialBoost && save.gold >= level.specialBoostCost) {
+      save.gold -= level.specialBoostCost;
+      persist();
+      runBoost[level.specialBoost] = true;
+    }
+    beginPlaying();
+  });
+  boostNoBtn.addEventListener('click', () => {
+    beginPlaying();
+  });
 
   // Quit the current attempt without finishing it. If the level wasn't
   // completed, the main menu nudges the player toward Yükseltmeler next time.
@@ -718,6 +780,7 @@
     hud.hidden = true;
     renderMenu();
     showScreen('menu');
+    if (showShopHint) flashUpgradeBanner();
   }
   hudQuitBtn.addEventListener('click', endLevelEarly);
 
@@ -749,7 +812,7 @@
       const now = performance.now();
       if (now - web.lastTapAt > WEB_TAP_COOLDOWN_MS) {
         audio();
-        const impulse = WEB_TAP_IMPULSE_BASE + save.upgrades.web * WEB_TAP_STEP;
+        const impulse = WEB_TAP_IMPULSE_BASE + (runBoost.web ? WEB_BOOST_IMPULSE : 0);
         web.speed = Math.min(WEB_MAX, web.speed + impulse);
         web.lastTapAt = now;
         spawnParticles(CENTER_X, player.y - 60 + cameraOffset, 4, '#ffffff');
@@ -914,7 +977,7 @@
   }
 
   function updateHeli(dt) {
-    const base = Math.min(HELI_MAX, HELI_BASE + save.upgrades.rotor * HELI_BASE_STEP);
+    const base = Math.min(HELI_MAX, HELI_BASE + (runBoost.rotor ? HELI_ROTOR_BOOST : 0));
     heli.burst *= Math.pow(0.97, dt);
     const target = Math.min(HELI_MAX, base + heli.burst);
     heli.speed += (target - heli.speed) * Math.min(1, 0.06 * dt);
@@ -926,7 +989,7 @@
     if (heightAboveTrampoline > maxHeightReached) maxHeightReached = heightAboveTrampoline;
 
     const rotorY = player.y - 60;
-    const slow = Math.min(0.98, 0.86 + save.upgrades.rotor * 0.012);
+    const slow = runBoost.rotor ? HELI_CLOUD_SLOW_BOOSTED : HELI_CLOUD_SLOW_BASE;
     heli.clouds.forEach(c => {
       if (!c.split && Math.abs(c.y - rotorY) < 34 && Math.abs(c.x - CENTER_X) < c.w / 2 + 20) {
         c.split = true;
@@ -1009,7 +1072,7 @@
 
   // ---------- Slingshot ----------
   // Aim upgrade shrinks the red/yellow zones, so green starts earlier and covers more of the meter.
-  function slingZoneScale() { return Math.max(0.6, 1 - save.upgrades.aim * 0.05); }
+  function slingZoneScale() { return runBoost.aim ? SLING_AIM_BOOST_SCALE : 1; }
 
   function applySlingZones() {
     const f = slingZoneScale();
@@ -1036,6 +1099,30 @@
     slingResult.hidden = true;
     slingMeter.hidden = false;
     playBoost();
+    flashSlingHoldBanner();
+  }
+
+  // A bold, WordArt-style "BASILI TUT!" banner that pops in and fades out
+  // every time the hero docks on the slingshot, reinforcing the hold-to-launch gesture.
+  let slingHoldBannerTimer = null;
+  function flashSlingHoldBanner() {
+    slingHoldBanner.hidden = true;
+    void slingHoldBanner.offsetWidth; // restart the CSS animation from scratch
+    slingHoldBanner.hidden = false;
+    clearTimeout(slingHoldBannerTimer);
+    slingHoldBannerTimer = setTimeout(() => { slingHoldBanner.hidden = true; }, 2200);
+  }
+
+  // Shown when a run ends without reaching the finish line: a big
+  // WordArt-style "YÜKSELTMELER" banner pops in/out over the menu, drawing
+  // the eye toward the small bouncing-arrow hint next to the shop button.
+  let upgradeBannerTimer = null;
+  function flashUpgradeBanner() {
+    upgradeBanner.hidden = true;
+    void upgradeBanner.offsetWidth;
+    upgradeBanner.hidden = false;
+    clearTimeout(upgradeBannerTimer);
+    upgradeBannerTimer = setTimeout(() => { upgradeBanner.hidden = true; }, 2200);
   }
 
   function updateSling(dt) {
@@ -3268,7 +3355,7 @@
       updateParticles(dt);
       updateClouds(dt);
       render();
-    } else if (state === STATE.MENU || state === STATE.HOWTO || state === STATE.SHOP) {
+    } else if (state === STATE.MENU || state === STATE.HOWTO || state === STATE.SHOP || state === STATE.BOOST) {
       idlePreview(dt);
       render();
     }
